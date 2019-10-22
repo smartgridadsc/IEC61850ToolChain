@@ -1,0 +1,44 @@
+
+			/*End of insert code*/
+			IedServer_unlockDataModel(iedServer);
+
+			free(tmp);
+		}
+	}
+
+}
+bool stobool(const char *value) {
+	if (strcmp(value, "True") == 0 || strcmp(value, "TRUE") == 0
+			|| strcmp(value, "true") == 0 || strcmp(value, "T") == 0) {
+		return true;
+	} else if (strcmp(value, "False") == 0 || strcmp(value, "FALSE") == 0
+			|| strcmp(value, "false") == 0 || strcmp(value, "F") == 0) {
+		return false;
+	}
+	printf("invalid true/false input: %s, return false \n", value);
+	return false;
+}
+
+const char** getfield(char *line) {
+	int init_size = strlen(line);
+	char delim[] = ",";
+
+	char *ptr = strtok(line, delim);
+	char **results;
+	results = (char**) malloc(sizeof(char*) * 4);
+	int i = 0;
+	while (ptr != NULL) {
+		//printf("cont:%s\n", ptr);
+		results[i] = malloc(sizeof(char) * 4);
+		if (!results[i]) {
+			printf("malloc failed\n");
+		} else {
+			results[i] = ptr;
+			//printf("res %x", results[i]);
+			//printf("test:%s\n",results[i]);
+		}
+		i++;
+		ptr = strtok(NULL, delim);
+	}
+	return results;
+}

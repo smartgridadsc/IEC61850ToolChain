@@ -1,0 +1,60 @@
+/*
+ * goose_publisher_example.c
+ */
+
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include "goose_publisher_toolchain.h"
+#define CSVFILENAME "value.csv"
+/* import IEC 61850 device model created from SCL-File */
+extern IedModel iedModel;
+static IedServer iedServer = NULL;
+
+// has to be executed as root!
+int main(int argc, char **argv) {
+	char *interface;
+
+	if (argc > 1) {
+		interface = argv[1];
+	} else {
+		interface = "eth0";
+	}
+	printf("Using interface %s\n", interface);
+
+	iedServer = IedServer_create(&iedModel);
+	IedServer_setGooseInterfaceId(iedServer, interface);
+	IedServer_start(iedServer, 102); //why need tcp port? for mms?
+	if (!IedServer_isRunning(iedServer)) {
+		printf("Starting server failed! Exit.\n");
+		IedServer_destroy(iedServer);
+		exit(-1);
+	}
+	/* Start GOOSE publishing */
+	IedServer_enableGoosePublishing(iedServer);
+
+	/*prepare csv reading*/
+	FILE *stream = fopen(CSVFILENAME, "r");
+	if(stream==NULL){
+		printf("Cannot load csv file.\n");
+		exit(-1);
+	}
+	char *buffer;
+	size_t bufsize = 1024;
+	size_t characters;
+	buffer = (char*) malloc(bufsize * sizeof(char));
+	int lineSize = 0;
+
+	//update packets value basing on csv file.
+	int running = 1;
+	while (running) {
+		lineSize = getline(&buffer, &bufsize, stream);
+		//printf("come here\n");
+		if (lineSize != -1) { //read a new line from csv
+
+			char *tmp = strdup(buffer);
+			char **results = getfield(tmp);
+			IedServer_lockDataModel(iedServer); //Lock the MMS server data model.Client requests will be postponed until the lock is removed.
+			/*Insert generated code here*/

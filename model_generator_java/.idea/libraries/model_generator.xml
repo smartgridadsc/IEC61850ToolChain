@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="model_generator">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/gendyncode.jar!/" />
+      <root url="jar://$PROJECT_DIR$/genmodel.jar!/" />
+      <root url="jar://$PROJECT_DIR$/modelviewer.jar!/" />
+      <root url="jar://$PROJECT_DIR$/genconfig.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
