@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<attacks>
+	<attack name="insertAttack" enable="true">
+		<condition>
+			<stNum value="5"/>
+			<sqNum value="0"/>
+			<gcbName value="alarm"/>
+		</condition>
+		<payload>
+			<appId value="1000"/>
+			<dstAddress value="010ccd010001"/>
+			<vlanId value="0"/>
+			<vlanPriority value="4"/>
+			<values>
+				<value type="Integer" value="123123"/>
+				<value type="String" value="abc"/>
+				<value type="Binary" value="fales"/>
+			</values>
+		</payload>
+	</attack>
+	<attack name="modifyAttack" enable="true">
+		<condition>
+			<stNum value="5"/>
+			<sqNum value="0"/>
+			<gcbName value="alarm"/>
+		</condition>
+		<payload>
+			<modification arrayIndex="1" modifiedValue="1000"/>
+			<modification arrayIndex="2" modifiedValue="1001"/>
+		</payload>
+	</attack>
+</attacks>

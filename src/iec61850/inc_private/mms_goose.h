@@ -20,7 +20,7 @@
  *
  *  See COPYING file for the complete license text.
  */
-
+#include "mms_mapping.h" //liyuan modified: add this line
 #ifndef MMS_GOOSE_H_
 #define MMS_GOOSE_H_
 

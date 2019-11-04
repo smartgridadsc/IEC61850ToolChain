@@ -81,6 +81,13 @@ GoosePublisher_increaseStNum(GoosePublisher self);
 void
 GoosePublisher_reset(GoosePublisher self);
 
+//liyuan modify: add
+uint32_t
+GoosePublisher_getStNum(GoosePublisher self);
+
+uint32_t
+GoosePublisher_getSqNum(GoosePublisher self);
+
 #ifdef __cplusplus
 }
 #endif

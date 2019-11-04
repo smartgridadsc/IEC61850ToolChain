@@ -146,6 +146,18 @@ GoosePublisher_increaseStNum(GoosePublisher self)
 
     return currentTime;
 }
+//liyuan modify :add these two functions
+uint32_t
+GoosePublisher_getStNum(GoosePublisher self)
+{
+    return self->stNum;
+}
+
+uint32_t
+GoosePublisher_getSqNum(GoosePublisher self)
+{
+    return self->sqNum;
+}
 
 void
 GoosePublisher_reset(GoosePublisher self) {
