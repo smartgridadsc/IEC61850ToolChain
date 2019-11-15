@@ -1,7 +1,7 @@
 /*
  * goose_publisher_example.c
  */
-
+//Temp
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
