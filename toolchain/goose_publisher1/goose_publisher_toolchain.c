@@ -41,6 +41,9 @@ int main(int argc, char **argv) {
 	int modifyAttack_arrayIndex=0;
 	char* modifyAttack_modifiedValue="1000";
 
+	// Read attack infor from xml file.
+	struct AttackList attackList=getAttackList();
+
 
 	if (argc > 2) {
 		interface = "lo";
@@ -302,7 +305,6 @@ void launchModifyAttack(IedServer iedserver, int suppressAttack_stnum,
 				break;
 			}
 		}
-
 }
 void ModifyArray(char** array, int arrayIndex, char* modifiedValue){
 	array[arrayIndex]=modifiedValue;

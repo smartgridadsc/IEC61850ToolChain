@@ -5,12 +5,20 @@
 			<stNum value="5"/>
 			<sqNum value="0"/>
 			<gcbName value="alarm"/>
+			<time value="10"/>
 		</condition>
 		<payload>
-			<appId value="1000"/>
-			<dstAddress value="010ccd010001"/>
-			<vlanId value="0"/>
-			<vlanPriority value="4"/>
+			<stNum value="101"/>
+			<sqNum value="102"/>
+			<gcbName value="103malicious"/>
+			<appId value="104"/>
+			<dstAddress value="105010ccd010001"/>
+			<vlanId value="106"/>
+			<vlanPriority value="107"/>
+			<gocbRef value="108TIED1CTRL/LLN$Control_TC"/>
+			<timeAllowedtoLive value="109"/>
+			<dataSet value="110TIED1CTRL/LLN$Control_TC"/>
+			<goID value="111TIED1CTRL/LLN$Control_TC"/>
 			<values>
 				<value type="Integer" value="123123"/>
 				<value type="String" value="abc"/>
@@ -23,6 +31,7 @@
 			<stNum value="5"/>
 			<sqNum value="0"/>
 			<gcbName value="alarm"/>
+			<time value="10"/>
 		</condition>
 		<payload>
 			<modification arrayIndex="1" modifiedValue="1000"/>
