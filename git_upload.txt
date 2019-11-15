@@ -1,0 +1,7 @@
+git add .
+git commit -m "commet"
+git push
+
+//if error in merge
+git pull
+

