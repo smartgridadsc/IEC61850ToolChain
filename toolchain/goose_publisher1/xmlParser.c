@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include "xmlParser.h"
 #include <unistd.h>
-#define ATTACKSCENARIOXML "/home/liyuan/xmlParser2/xmlparser2/src/AttackScenarioConfiguration.xml"
+#define ATTACKSCENARIOXML "/home/liyuan/IEC61850ToolChain/toolchain/goose_publisher1/AttackScenarioConfiguration.xml"
 /*
  *To compile this file using gcc you can type
  *gcc `xml2-config --cflags --libs` -o xmlexample libxml2-example.c
@@ -45,7 +45,7 @@ static void print_element_names(xmlNode *a_node) {
 			xmlFree(value);
 			attribute = attribute->next;
 		}
-		xmlFree(attribute);
+		//xmlFree(attribute);
 
 		print_element_names(cur_node->children);
 	}
@@ -96,7 +96,7 @@ struct AttackList getAttackList() {
 
 	LIBXML_TEST_VERSION
 
-	struct InsertAttack insertAttacks[MAXIMUM_INSERT_ATTACK];
+	//struct InsertAttack insertAttacks[MAXIMUM_INSERT_ATTACK];
 	doc = xmlReadFile(ATTACKSCENARIOXML, NULL, 0);
 
 	if (doc == NULL) {
@@ -107,8 +107,9 @@ struct AttackList getAttackList() {
 
 	// print_element_names(root_element);
 	struct AttackList attList = parserAttacks(root_element);
-	xmlFreeDoc(doc);
+	//xmlFreeDoc(doc); todo: memory collapse happened in this line. Check it later. or call it when finish this program.
 	xmlCleanupParser();
+
 	return attList;
 }
 
@@ -119,7 +120,6 @@ struct AttackList parserAttacks(xmlNode *a_node) {
 	for (cur_node = xmlAttack; cur_node; cur_node = cur_node->next) {
 		if (cur_node->type == XML_ELEMENT_NODE) {
 			if (!strcmp(cur_node->name, ATTACK_LABLE_NAME)) {
-				printf("find a attack tag:%s\n", cur_node->name);
 				//check attack type
 				xmlAttr *attribute = cur_node->properties;
 				while (attribute) {
@@ -128,9 +128,9 @@ struct AttackList parserAttacks(xmlNode *a_node) {
 								attribute->children, 1);
 						if (!strcmp(value, "insertAttack")) {
 							//parse as insert attack
-							printf("this is a insert attack\n");
-							struct InsertAttack inAttack =
-									parserInsertAttackXML(cur_node);
+							//printf("this is a insert attack\n");
+							struct InsertAttack inAttack =parserInsertAttackXML(cur_node);
+							attList.insertAttackList[attList.insertAttackNum++]=inAttack;
 							/*printf("*********************final result\n");
 							printf("stNum : %d\n", inAttack.stNum);
 							printf("sqNum : %d\n", inAttack.sqNum);
@@ -149,9 +149,10 @@ struct AttackList parserAttacks(xmlNode *a_node) {
 
 						} else if (!strcmp(value, "modifyAttack")) {
 							//parse as modify attack
-							/*printf("this is a modify attack\n");
+							//printf("this is a modify attack\n");
 							struct ModifyAttack mdfAttack=parserModifyAttackXML(cur_node);
-							printf("*********************modify attack final result\n");
+							attList.modifyAttackList[attList.modifyAttackNum++]=mdfAttack;
+							/*printf("*********************modify attack final result\n");
 							printf("stnum is %d\n",mdfAttack.condition_st);
 							printf("sqnum is %d\n",mdfAttack.condition_sq);
 							printf("gcb is %s\n",mdfAttack.condition_gcb);
@@ -166,11 +167,8 @@ struct AttackList parserAttacks(xmlNode *a_node) {
 
 
 				}
-				xmlFree(attribute);
 			}
 		}
-
-		//try to print properties
 
 	}
 	return attList;
@@ -180,6 +178,7 @@ struct AttackList parserAttacks(xmlNode *a_node) {
 struct InsertAttack parserInsertAttackXML(xmlNode *attackNode) {
 	xmlAttr *attribute = attackNode->properties;
 	struct InsertAttack insAtta;
+	//printf("**********%lu\n", sizeof(insAtta));
 	while (attribute) {
 		if (!strcmp(attribute->name, "enable")) {
 			xmlChar *value = xmlNodeListGetString(attackNode->doc,
@@ -191,6 +190,7 @@ struct InsertAttack parserInsertAttackXML(xmlNode *attackNode) {
 					if (subAttackNode->type == XML_ELEMENT_NODE
 							& !strcmp(subAttackNode->name, "condition")) {
 						insAtta.valid=true;
+						insAtta.executed=false;
 						xmlNode *conditionChild = subAttackNode->children;
 						while (conditionChild) {
 							if (conditionChild->type == XML_ELEMENT_NODE) {
@@ -217,14 +217,15 @@ struct InsertAttack parserInsertAttackXML(xmlNode *attackNode) {
 									strcpy(insAtta.condition_gcb,conditionChildValue);
 								} else if (!strcmp(conditionChild->name,"time")) {
 									insAtta.condition_time =atof(conditionChildValue);
+								}else if(!strcmp(conditionChild->name,"conditionType")){
+									insAtta.condition_type = atoi(conditionChildValue);
+
 								}
 								xmlFree(conditionChildValue);
-								xmlFree(conditionChildAttribute);
 							}
 							conditionChild = conditionChild->next;
 
 						}
-						xmlFree(conditionChild);
 					}
 					/* Begin to Parse payload Xml node*/
 					else if (subAttackNode->type == XML_ELEMENT_NODE
@@ -243,13 +244,11 @@ struct InsertAttack parserInsertAttackXML(xmlNode *attackNode) {
 										}
 										valueNode=valueNode->next;
 									}
-									xmlFree(valueNode);
 								} else {
 									char *value = getAttributeValueByName(
 											"value", payloadChild);
 									if (strcmp(value, "non-value")) {
-										printf("%s value is %s\n",
-												payloadChild->name, value);
+										//printf("%s value is %s\n",payloadChild->name, value);
 									if(!strcmp(payloadChild->name,"stNum")) {
 										insAtta.stNum=atoi(value);
 									} else if(!strcmp(payloadChild->name,"sqNum")) {
@@ -279,25 +278,19 @@ struct InsertAttack parserInsertAttackXML(xmlNode *attackNode) {
 						}
 						payloadChild = payloadChild->next;
 					}
-					xmlFree(payloadChild);
 					}
 
 					subAttackNode = subAttackNode->next;
 				}
-				xmlFree(subAttackNode);
 
 			} else {
-				xmlFree(attribute);
-				xmlFree(value);
 				printf("Insert Attack Disabled\n");
-				//return null;
 			}
 			xmlFree(value);
 			break;
 		}
 		attribute = attribute->next;
 	}
-	xmlFree(attribute);
 	return insAtta;
 }
 
@@ -312,7 +305,6 @@ char* getAttributeValueByName(char *attributeName, xmlNode *xNode) {
 		}
 		attribute = attribute->next;
 	}
-	xmlFree(attribute);
 	return conditionChildValue;
 
 }
@@ -337,6 +329,7 @@ struct ModifyAttack parserModifyAttackXML(xmlNode *attackNode){
 						if (subAttackNode->type == XML_ELEMENT_NODE
 								& !strcmp(subAttackNode->name, "condition")) {
 							mdfAtta.valid=true;
+							mdfAtta.executed=false;
 							xmlNode *conditionChild = subAttackNode->children;
 							while (conditionChild) {
 								if (conditionChild->type == XML_ELEMENT_NODE) {
@@ -363,14 +356,15 @@ struct ModifyAttack parserModifyAttackXML(xmlNode *attackNode){
 										strcpy(mdfAtta.condition_gcb,conditionChildValue);
 									} else if (!strcmp(conditionChild->name,"time")) {
 										mdfAtta.condition_time =atof(conditionChildValue);
+									}else if(!strcmp(conditionChild->name,"conditionType")){
+										mdfAtta.condition_type = atoi(conditionChildValue);
 									}
 									xmlFree(conditionChildValue);
-									xmlFree(conditionChildAttribute);
+									//xmlFree(conditionChildAttribute);
 								}
 								conditionChild = conditionChild->next;
 
 							}
-							xmlFree(conditionChild);
 						}
 						/* Begin to Parse payload Xml node*/
 					else if (subAttackNode->type == XML_ELEMENT_NODE
@@ -388,16 +382,11 @@ struct ModifyAttack parserModifyAttackXML(xmlNode *attackNode){
 							}
 							payloadChild = payloadChild->next;
 						}
-						xmlFree(payloadChild);
 					}
 
 						subAttackNode = subAttackNode->next;
 					}
-					xmlFree(subAttackNode);
-
 				} else {
-					xmlFree(attribute);
-					xmlFree(value);
 					printf("Insert Attack Disabled\n");
 					//return null;
 				}
@@ -406,7 +395,6 @@ struct ModifyAttack parserModifyAttackXML(xmlNode *attackNode){
 			}
 			attribute = attribute->next;
 		}
-		xmlFree(attribute);
 		return mdfAtta;
 }
 

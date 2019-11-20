@@ -7,11 +7,13 @@
 #include "models/LIED11.c"
 #include "models/LIED11.h"
 #include "xmlParser.h"
+#include "time.h"
 bool stobool(const char* value);
 const char** getfield(char *line);
 double getTime();
 void updateStNum(IedServer iedserver);
-void launchInsertAttack(IedServer iedserver, int insertAttack_stnum, int insertAttack_sqnum, char* insertAttack_name);
-void insertPacket();
-void launchModifyAttack(IedServer iedserver, int suppressAttack_stnum,int suppressAttack_sqnum, int arrayIndex, char* modifiedValue, char** array);
-void ModifyArray(char** array, int arrayIndex, char* modifiedValue);
+void launchInsertAttack(IedServer iedserver);
+void insertPacket(struct InsertAttack iAttack);
+void launchModifyAttack(IedServer iedserver,char** array);
+void ModifyArray(char** array,struct ModifyAttack mAttack);
+int getHexFromString(int index,char * string);
