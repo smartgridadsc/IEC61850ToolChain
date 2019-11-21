@@ -13,7 +13,7 @@
 			<sqNum value="102"/>
 			<gcbName value="103malicious"/>
 			<appId value="104"/>
-			<dstAddress value="abcd10341210"/>
+			<dstAddress value="fbcd10341210"/>
 			<vlanId value="106"/>
 			<vlanPriority value="107"/>
 			<gocbRef value="108TIED1CTRL/LLN$Control_TC"/>
