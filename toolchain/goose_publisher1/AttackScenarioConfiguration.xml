@@ -82,4 +82,35 @@
 			<modification arrayIndex="2" modifiedValue="2001"/>
 		</payload>
 	</attack>
+	<attack name="dosAttack" enable="true">
+		<condition>
+			<conditionType value="1"/>
+			<stNum value="7"/>
+			<sqNum value="0"/>
+			<gcbName value="Alarm"/>
+			<time value="10"/>
+		</condition>
+		<payload>
+			<stNum value="101"/>
+			<sqNum value="102"/>
+			<gcbName value="103malicious"/>
+			<appId value="104"/>
+			<dstAddress value="abcd10341210"/>
+			<vlanId value="106"/>
+			<vlanPriority value="107"/>
+			<gocbRef value="108TIED1CTRL/LLN$Control_TC"/>
+			<timeAllowedtoLive value="109"/>
+			<dataSet value="110TIED1CTRL/LLN$Control_TC"/>
+			<goID value="111TIED1CTRL/LLN$Control_TC"/>
+			<values>
+				<value type="integer" value="123123"/>
+				<value type="string" value="abc"/>
+				<value type="boolean" value="true"/>
+				<value type="float" value="1.3"/>
+			</values>
+		</payload>
+		<stop_condition>
+			<packetsNum value="100"/>
+		</stop_condition>
+	</attack>
 </attacks>

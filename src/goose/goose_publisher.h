@@ -81,12 +81,15 @@ GoosePublisher_increaseStNum(GoosePublisher self);
 void
 GoosePublisher_reset(GoosePublisher self);
 
-//liyuan modify: add
+//liyuan modify: add 4 funcitons
 uint32_t
 GoosePublisher_getStNum(GoosePublisher self);
 
 uint32_t
 GoosePublisher_getSqNum(GoosePublisher self);
+
+void GoosePublisher_setStNum(GoosePublisher self,int st);
+void GoosePublisher_setSqNum(GoosePublisher self,int sq);
 
 #ifdef __cplusplus
 }

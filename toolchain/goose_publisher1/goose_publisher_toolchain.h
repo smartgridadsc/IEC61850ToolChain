@@ -22,6 +22,7 @@ void launchModifyAttack(IedServer iedserver,char** array);
 void ModifyArray(char** array,struct ModifyAttack mAttack);
 int getHexFromString(int index,char * string);
 void insertDoSPacket(int num_of_packets, LinkedList* dataSetValues, GoosePublisher* publisher);
-void *launchDoSAttack(void *packets);
-
+void* sendDosAttackPacket(void *dAttack);
+void createDoSAttackThread(struct DosAttack dAttack);
+void launchDoSAttack(IedServer iedserver);
 
