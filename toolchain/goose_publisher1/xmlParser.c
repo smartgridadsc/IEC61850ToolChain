@@ -128,7 +128,10 @@ struct AttackList parserAttacks(xmlNode *a_node) {
 								attribute->children, 1);
 						if (!strcmp(value, "insertAttack")) {
 							struct InsertAttack inAttack =parserInsertAttackXML(cur_node);
-							attList.insertAttackList[attList.insertAttackNum++]=inAttack;
+							if(inAttack.valid){
+								attList.insertAttackList[attList.insertAttackNum++]=inAttack;
+							}
+
 							/*printf("*********************final result\n");
 							printf("stNum : %d\n", inAttack.stNum);
 							printf("sqNum : %d\n", inAttack.sqNum);
@@ -147,18 +150,22 @@ struct AttackList parserAttacks(xmlNode *a_node) {
 
 						} else if (!strcmp(value, "modifyAttack")) {
 							struct ModifyAttack mdfAttack=parserModifyAttackXML(cur_node);
-							attList.modifyAttackList[attList.modifyAttackNum++]=mdfAttack;
-							printf("*********************modify attack final result\n");
+							if(mdfAttack.valid){
+								attList.modifyAttackList[attList.modifyAttackNum++]=mdfAttack;
+							}
+							/*printf("*********************modify attack final result\n");
 							printf("stnum is %d\n",mdfAttack.condition_st);
 							printf("sqnum is %d\n",mdfAttack.condition_sq);
 							printf("gcb is %s\n",mdfAttack.condition_gcb);
 							printf("time is %d\n",mdfAttack.condition_time);
 							printf("arrayIndex is %d\n",mdfAttack.modifications[0].arrayIndex);
-							printf("modifiedvalue is %s\n",mdfAttack.modifications[0].modifiedvalue);
+							printf("modifiedvalue is %s\n",mdfAttack.modifications[0].modifiedvalue);*/
 						}else if (!strcmp(value, "dosAttack")){
 							struct DosAttack dosAttack=parserDosAttackXML(cur_node);
-							attList.dosAttackList[attList.dosAttackNum++]=dosAttack;
-							printf("*********************DoS attack final result\n");
+							if(dosAttack.valid){
+								attList.dosAttackList[attList.dosAttackNum++]=dosAttack;
+							}
+							/*printf("*********************DoS attack final result\n");
 							printf("stNum : %d\n", dosAttack.stNum);
 							printf("sqNum : %d\n", dosAttack.sqNum);
 							printf("gcbName : %s\n", dosAttack.gcbName);
@@ -169,7 +176,7 @@ struct AttackList parserAttacks(xmlNode *a_node) {
 							printf("gocbRef : %s\n", dosAttack.gocbRef);
 							printf("timeAllowedtoLive : %d\n",dosAttack.timeAllowedtoLive);
 							printf("dataSet : %s\n", dosAttack.dataSet);
-							printf("goID : %s\n", dosAttack.goID);
+							printf("goID : %s\n", dosAttack.goID);*/
 						}
 						xmlFree(value);
 						break;
@@ -189,6 +196,7 @@ struct AttackList parserAttacks(xmlNode *a_node) {
 struct InsertAttack parserInsertAttackXML(xmlNode *attackNode) {
 	xmlAttr *attribute = attackNode->properties;
 	struct InsertAttack insAtta;
+	insAtta.valid=false;
 	//printf("**********%lu\n", sizeof(insAtta));
 	while (attribute) {
 		if (!strcmp(attribute->name, "enable")) {
@@ -202,6 +210,12 @@ struct InsertAttack parserInsertAttackXML(xmlNode *attackNode) {
 							& !strcmp(subAttackNode->name, "condition")) {
 						insAtta.valid=true;
 						insAtta.executed=false;
+						//initialize condition_payload
+						int index_k;
+						for(index_k=0;index_k<MAXIMUM_CONDITION_PAYLOAD_SIZE;index_k++){
+							insAtta.condition_payloads[index_k].index=-1;
+						}
+						//insAtta.condition_payloads
 						xmlNode *conditionChild = subAttackNode->children;
 						while (conditionChild) {
 							if (conditionChild->type == XML_ELEMENT_NODE) {
@@ -230,6 +244,17 @@ struct InsertAttack parserInsertAttackXML(xmlNode *attackNode) {
 									insAtta.condition_time =atof(conditionChildValue);
 								}else if(!strcmp(conditionChild->name,"conditionType")){
 									insAtta.condition_type = atoi(conditionChildValue);
+								}else if(!strcmp(conditionChild->name,"payload_conditions")){
+									//todo call paylaod_condition parser
+									xmlNode *current_condition_payload=conditionChild->children;
+
+									int ind=0;
+									while(current_condition_payload){
+										if (current_condition_payload->type == XML_ELEMENT_NODE) {
+											insAtta.condition_payloads[ind++]=parserPayloadCondtion(current_condition_payload);
+										}
+										current_condition_payload=current_condition_payload->next;
+									}
 
 								}
 								xmlFree(conditionChildValue);
@@ -282,6 +307,8 @@ struct InsertAttack parserInsertAttackXML(xmlNode *attackNode) {
 										strcpy(insAtta.dataSet,value);
 									} else if(!strcmp(payloadChild->name,"goID")) {
 										strcpy(insAtta.goID,value);
+									}else if(!strcmp(payloadChild->name,"interface")) {
+										strcpy(insAtta.interface,value);
 									}
 								}
 							}
@@ -296,6 +323,7 @@ struct InsertAttack parserInsertAttackXML(xmlNode *attackNode) {
 
 			} else {
 				printf("Insert Attack Disabled\n");
+				break;
 			}
 			xmlFree(value);
 			break;
@@ -307,6 +335,7 @@ struct InsertAttack parserInsertAttackXML(xmlNode *attackNode) {
 struct DosAttack parserDosAttackXML(xmlNode *attackNode) {
 	xmlAttr *attribute = attackNode->properties;
 	struct DosAttack dosAtta;
+	dosAtta.valid=false;
 	while (attribute) {
 		if (!strcmp(attribute->name, "enable")) {
 			xmlChar *value = xmlNodeListGetString(attackNode->doc,
@@ -425,6 +454,8 @@ struct DosAttack parserDosAttackXML(xmlNode *attackNode) {
 										} else if (!strcmp(payloadChild->name,
 												"goID")) {
 											strcpy(dosAtta.goID, value);
+										}else if(!strcmp(payloadChild->name,"interface")) {
+											strcpy(dosAtta.interface,value);
 										}
 									}
 								}
@@ -496,6 +527,13 @@ struct DosAttackValue parseDosAttackValue(xmlNode * valueNode){
 struct ModifyAttack parserModifyAttackXML(xmlNode *attackNode){
 	xmlAttr *attribute = attackNode->properties;
 		struct ModifyAttack mdfAtta;
+		mdfAtta.valid=false;
+		//flush modifications memory
+		int k;
+		for(k=0;k<MAXIMUM_MODIFICATION_SIZE;k++){
+			mdfAtta.modifications[k].arrayIndex=-1;
+		}
+
 		while (attribute) {
 			if (!strcmp(attribute->name, "enable")) {
 				xmlChar *value = xmlNodeListGetString(attackNode->doc,
@@ -556,6 +594,8 @@ struct ModifyAttack parserModifyAttackXML(xmlNode *attackNode){
 											mdfAtta.modifications[index] =parseModifyAttackValue(payloadChild);
 											index++;
 										}
+								}else if(!strcmp(payloadChild->name,"interface")) {
+									strcpy(mdfAtta.interface,value);
 								}
 							}
 							payloadChild = payloadChild->next;
@@ -566,7 +606,6 @@ struct ModifyAttack parserModifyAttackXML(xmlNode *attackNode){
 					}
 				} else {
 					printf("Insert Attack Disabled\n");
-					//return null;
 				}
 				xmlFree(value);
 				break;
@@ -582,5 +621,15 @@ struct ModifyAttackModification parseModifyAttackValue(xmlNode * modificationNod
 	strcpy(modification.modifiedvalue,getAttributeValueByName("modifiedValue",modificationNode));
 	return modification;
 
+}
+struct PayloadCondition parserPayloadCondtion(xmlNode *payloadCondtionNode){
+	struct PayloadCondition pCondition;
+	pCondition.index=atoi(getAttributeValueByName("index",payloadCondtionNode));
+	strcpy(pCondition.type, getAttributeValueByName("type",payloadCondtionNode));
+	strcpy(pCondition.value, getAttributeValueByName("value",payloadCondtionNode));
+	if(!strcmp(pCondition.type,"numeric")){
+		strcpy(pCondition.operator, getAttributeValueByName("operator",payloadCondtionNode));
+	}
+	return pCondition;
 }
 

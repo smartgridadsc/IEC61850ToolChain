@@ -2,13 +2,19 @@
 <attacks>
 	<attack name="insertAttack" enable="true">
 		<condition>
-			<conditionType value="1"/>
+			<conditionType value="3"/>
 			<stNum value="5"/>
 			<sqNum value="0"/>
 			<gcbName value="Alarm"/>
 			<time value="10"/>
+			<payload_conditions>
+				<!--payload_condition index="1" type="string" value="string"/-->
+				<!--payload_condition index="1" type="numeric" value="5" operator="equal"/-->
+				<paylaod_condition index="5" type="boolean" value="true"/>
+			</payload_conditions>
 		</condition>
 		<payload>
+			<interface value="lo"/>
 			<stNum value="101"/>
 			<sqNum value="102"/>
 			<gcbName value="103malicious"/>
@@ -28,7 +34,7 @@
 			</values>
 		</payload>
 	</attack>
-	<attack name="insertAttack" enable="true">
+	<attack name="insertAttack" enable="false">
 		<condition>
 			<conditionType value="1"/>
 			<stNum value="7"/>
@@ -37,6 +43,7 @@
 			<time value="10"/>
 		</condition>
 		<payload>
+			<interface value="lo"/>
 			<stNum value="101"/>
 			<sqNum value="102"/>
 			<gcbName value="103malicious"/>
@@ -65,8 +72,10 @@
 			<time value="10"/>
 		</condition>
 		<payload>
-			<modification arrayIndex="1" modifiedValue="1000"/>
-			<modification arrayIndex="2" modifiedValue="1001"/>
+			<interface value="lo"/>
+			<modification arrayIndex="1" modifiedValue="11"/>
+			<modification arrayIndex="2" modifiedValue="22"/>
+			<modification arrayIndex="3" modifiedValue="33"/>
 		</payload>
 	</attack>
 	<attack name="modifyAttack" enable="true">
@@ -76,10 +85,12 @@
 			<sqNum value="0"/>
 			<gcbName value="Alarm"/>
 			<time value="10"/>
+			
 		</condition>
 		<payload>
-			<modification arrayIndex="1" modifiedValue="2000"/>
-			<modification arrayIndex="2" modifiedValue="2001"/>
+			<interface value="lo"/>
+			<modification arrayIndex="1" modifiedValue="44"/>
+			<modification arrayIndex="2" modifiedValue="55"/>
 		</payload>
 	</attack>
 	<attack name="dosAttack" enable="true">
@@ -91,6 +102,7 @@
 			<time value="10"/>
 		</condition>
 		<payload>
+			<interface value="lo"/>
 			<stNum value="101"/>
 			<sqNum value="102"/>
 			<gcbName value="103malicious"/>

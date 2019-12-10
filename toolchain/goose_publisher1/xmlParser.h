@@ -6,10 +6,13 @@
 
 #define CONDITION_ST_SQ_GCB 1
 #define CONDITION_TIME 2
+#define CONDITION_PAYLOAD 3
 #define MAXIMUM_INSERT_ATTACK 10
 #define MAXIMUM_MODIFY_ATTACK 10
 #define MAXIMUM_DOS_ATTACK 10
 #define ATTACK_LABLE_NAME "attack"
+#define MAXIMUM_MODIFICATION_SIZE 25
+#define MAXIMUM_CONDITION_PAYLOAD_SIZE 10
 
 struct AttackList parserAttacks(xmlNode *a_node);
 char* getAttributeValueByName(char *attributeName, xmlNode *xNolde);
@@ -21,6 +24,7 @@ struct DosAttack parserDosAttackXML(xmlNode *attackNode);
 struct ModifyAttackModification parseModifyAttackValue(xmlNode * modificationNode);
 struct AttackList getAttackList();
 double getRuningTime();
+struct PayloadCondition parserPayloadCondtion(xmlNode *payloadCondtionNode);
 struct InsertAttackValue{
 	char type[20];
 	char value[50];
@@ -28,6 +32,13 @@ struct InsertAttackValue{
 struct DosAttackValue{
 	char type[20];
 	char value[50];
+};
+
+struct PayloadCondition{
+	int index;
+	char type[10];
+	char value[20];
+	char operator[10];
 };
 
 struct InsertAttack{
@@ -39,7 +50,9 @@ struct InsertAttack{
 	int condition_sq;
 	char condition_gcb[50];
 	float condition_time;
+	struct PayloadCondition condition_payloads[MAXIMUM_CONDITION_PAYLOAD_SIZE];
 	/*define attack payload*/
+	char interface[10];
 	int stNum;
 	int sqNum;
 	char gcbName[50];
@@ -63,7 +76,9 @@ struct DosAttack{
 	int condition_sq;
 	char condition_gcb[50];
 	float condition_time;
+	struct PayloadCondition condition_payloads[MAXIMUM_CONDITION_PAYLOAD_SIZE];
 	/*define attack payload*/
+	char interface[10];
 	int stNum;
 	int sqNum;
 	char gcbName[50];
@@ -83,7 +98,7 @@ struct DosAttack{
 
 struct ModifyAttackModification{
 	int arrayIndex;
-	char modifiedvalue[50];
+	char modifiedvalue[5];
 };
 struct ModifyAttack{
 	//define attack condition
@@ -94,8 +109,10 @@ struct ModifyAttack{
 	int condition_sq;
 	char condition_gcb[50];
 	int condition_time;
+	struct PayloadCondition condition_payloads[MAXIMUM_CONDITION_PAYLOAD_SIZE];
 	//define attack payload
-	struct ModifyAttackModification modifications[25];
+	char interface[10];
+	struct ModifyAttackModification modifications[MAXIMUM_MODIFICATION_SIZE];
 	
 };
 struct AttackList{

@@ -16,7 +16,7 @@ const char** getfield(char *line);
 double getTime();
 void updateStNum(IedServer iedserver);
 
-void launchInsertAttack(IedServer iedserver);
+void launchInsertAttack(IedServer iedserver,char **results);
 void insertPacket(struct InsertAttack iAttack);
 void launchModifyAttack(IedServer iedserver,char** array);
 void ModifyArray(char** array,struct ModifyAttack mAttack);
@@ -25,4 +25,5 @@ void insertDoSPacket(int num_of_packets, LinkedList* dataSetValues, GoosePublish
 void* sendDosAttackPacket(void *dAttack);
 void createDoSAttackThread(struct DosAttack dAttack);
 void launchDoSAttack(IedServer iedserver);
+bool payloadConditionTrigger(struct PayloadCondition condition_payloads[MAXIMUM_CONDITION_PAYLOAD_SIZE],char **results);
 
