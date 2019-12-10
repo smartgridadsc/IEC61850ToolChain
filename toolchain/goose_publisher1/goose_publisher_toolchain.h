@@ -24,6 +24,6 @@ int getHexFromString(int index,char * string);
 void insertDoSPacket(int num_of_packets, LinkedList* dataSetValues, GoosePublisher* publisher);
 void* sendDosAttackPacket(void *dAttack);
 void createDoSAttackThread(struct DosAttack dAttack);
-void launchDoSAttack(IedServer iedserver);
+void launchDoSAttack(IedServer iedserver,char **results);
 bool payloadConditionTrigger(struct PayloadCondition condition_payloads[MAXIMUM_CONDITION_PAYLOAD_SIZE],char **results);
 

@@ -21,9 +21,9 @@
 extern IedModel iedModel;
 static IedServer iedServer = NULL;
 
-bool enableInsertAttack=true;
+bool enableInsertAttack=false;
 bool enableModifyAttack=false;
-bool enableDosAttack=false ;
+bool enableDosAttack=true ;
 int executedInsertAttackCount=0;
 int executedModifyAttackCount=0;
 int executedDosAttackCount=0;
@@ -202,6 +202,7 @@ int main(int argc, char **argv) {
 			}
 			//launch DoS attack
 			if(enableDosAttack){
+				launchDoSAttack(iedServer,results);
 			}
 
 			//manually update: stnum++, sqnum=0
@@ -380,7 +381,7 @@ void insertPacket(struct InsertAttack iAttack) {
 	LinkedList_destroyDeep(dataSetValues,(LinkedListValueDeleteFunction) MmsValue_delete);
 
 }
-void launchDoSAttack(IedServer iedserver) {//todo rewrite
+void launchDoSAttack(IedServer iedserver,char **results) {
 	LinkedList element = iedserver->mmsMapping->gseControls;
 	while ((element = LinkedList_getNext(element)) != NULL) {
 		MmsGooseControlBlock gcb = (MmsGooseControlBlock) element->data;
@@ -400,6 +401,13 @@ void launchDoSAttack(IedServer iedserver) {//todo rewrite
 					}
 				} else if (currentAttack.condition_type == CONDITION_TIME) {
 					if (getRuningTime() > currentAttack.condition_time) {
+						createDoSAttackThread(currentAttack);
+						currentAttack.executed = true;
+						executedDosAttackCount++;
+					}
+				}else if(currentAttack.condition_type == CONDITION_PAYLOAD){
+					if((!strcmp(gcb->name, currentAttack.condition_gcb))&&payloadConditionTrigger(currentAttack.condition_payloads,results)){
+						printf("trigger insert attack by condition_payload\n");
 						createDoSAttackThread(currentAttack);
 						currentAttack.executed = true;
 						executedDosAttackCount++;

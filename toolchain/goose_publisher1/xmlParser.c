@@ -348,6 +348,10 @@ struct DosAttack parserDosAttackXML(xmlNode *attackNode) {
 							& !strcmp(subAttackNode->name, "condition")) {
 						dosAtta.valid = true;
 						dosAtta.executed = false;
+						int index_k;
+						for(index_k=0;index_k<MAXIMUM_CONDITION_PAYLOAD_SIZE;index_k++){
+							dosAtta.condition_payloads[index_k].index=-1;
+						}
 						xmlNode *conditionChild = subAttackNode->children;
 						while (conditionChild) {
 							if (conditionChild->type == XML_ELEMENT_NODE) {
@@ -387,6 +391,16 @@ struct DosAttack parserDosAttackXML(xmlNode *attackNode) {
 										"conditionType")) {
 									dosAtta.condition_type = atoi(
 											conditionChildValue);
+
+								}else if(!strcmp(conditionChild->name,"payload_conditions")){
+									xmlNode *current_condition_payload=conditionChild->children;
+									int ind=0;
+									while(current_condition_payload){
+										if (current_condition_payload->type == XML_ELEMENT_NODE) {
+											dosAtta.condition_payloads[ind++]=parserPayloadCondtion(current_condition_payload);
+										}
+										current_condition_payload=current_condition_payload->next;
+									}
 
 								}
 								xmlFree(conditionChildValue);
@@ -546,6 +560,10 @@ struct ModifyAttack parserModifyAttackXML(xmlNode *attackNode){
 								& !strcmp(subAttackNode->name, "condition")) {
 							mdfAtta.valid=true;
 							mdfAtta.executed=false;
+							int index_k;
+							for(index_k=0;index_k<MAXIMUM_CONDITION_PAYLOAD_SIZE;index_k++){
+								mdfAtta.condition_payloads[index_k].index=-1;
+							}
 							xmlNode *conditionChild = subAttackNode->children;
 							while (conditionChild) {
 								if (conditionChild->type == XML_ELEMENT_NODE) {
@@ -574,6 +592,16 @@ struct ModifyAttack parserModifyAttackXML(xmlNode *attackNode){
 										mdfAtta.condition_time =atof(conditionChildValue);
 									}else if(!strcmp(conditionChild->name,"conditionType")){
 										mdfAtta.condition_type = atoi(conditionChildValue);
+									}else if(!strcmp(conditionChild->name,"payload_conditions")){
+										xmlNode *current_condition_payload=conditionChild->children;
+										int ind=0;
+										while(current_condition_payload){
+											if (current_condition_payload->type == XML_ELEMENT_NODE) {
+												mdfAtta.condition_payloads[ind++]=parserPayloadCondtion(current_condition_payload);
+											}
+											current_condition_payload=current_condition_payload->next;
+										}
+
 									}
 									xmlFree(conditionChildValue);
 									//xmlFree(conditionChildAttribute);
