@@ -23,7 +23,7 @@ static IedServer iedServer = NULL;
 
 bool enableInsertAttack=false;
 bool enableModifyAttack=false;
-bool enableDosAttack=true ;
+bool enableDosAttack=false ;
 int executedInsertAttackCount=0;
 int executedModifyAttackCount=0;
 int executedDosAttackCount=0;
@@ -37,20 +37,8 @@ int main(int argc, char **argv) {
 	double nextUpdatePayloadTime;
 	int port;
 	char *folder;
-
-
-	//parameters for insert attack
-
-	int insertAttack_stnum = 5;
-	int insertAttack_sqnum = 0;
-	char *insertAttack_name = "Alarm";
-
-	//parameters for suppress attack
-
-	int modifyAttack_stnum=5;
-	int modifyAttack_sqnum=0;
-	int modifyAttack_arrayIndex=0;
-	char* modifyAttack_modifiedValue="1000";
+    double programDuration=30;
+    double updatePayloadInterval=(iedModel.gseCBs->maxTime+iedModel.gseCBs->minTime)/(2*1000);
 
 
 
@@ -118,7 +106,7 @@ int main(int argc, char **argv) {
 	char **lastResult;
 	char * lastBuffer;
 	lastBuffer=(char*) malloc(bufsize * sizeof(char));
-	while (running) {
+	while (getRuningTime()<programDuration) {
 		lineSize = getline(&buffer, &bufsize, stream);
 		if (lineSize != -1) { //read a new line from csv
 			char *tmp = strdup(buffer);
@@ -192,7 +180,7 @@ int main(int argc, char **argv) {
 			IedServer_unlockDataModel(iedServer);
 			while (1) {
 					if (getTime() > nextUpdatePayloadTime) {
-						nextUpdatePayloadTime = nextUpdatePayloadTime + 1;
+						nextUpdatePayloadTime = nextUpdatePayloadTime + updatePayloadInterval;
 						break;
 					}
 			}
@@ -213,6 +201,8 @@ int main(int argc, char **argv) {
 		}
 
 	}
+	printf("running time is %f",getRuningTime());
+	exit(0);
 
 }
 bool stobool(const char *value) {
