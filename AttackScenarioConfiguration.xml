@@ -63,9 +63,9 @@
 			</values>
 		</payload>
 	</attack>
-	<attack name="modifyAttack" enable="false">
+	<attack name="modifyAttack" enable="true">
 		<condition>
-			<conditionType value="1"/>
+			<conditionType value="2"/>
 			<stNum value="5"/>
 			<sqNum value="0"/>
 			<gcbName value="Alarm"/>
@@ -90,7 +90,6 @@
 				<!--payload_condition index="1" type="numeric" value="5" operator="equal"/-->
 				<paylaod_condition index="5" type="boolean" value="true"/>
 			</payload_conditions>
-			
 		</condition>
 		<payload>
 			<interface value="lo"/>

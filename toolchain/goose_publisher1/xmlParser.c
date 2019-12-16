@@ -95,52 +95,18 @@ struct AttackList* parserAttacks(xmlNode *a_node) {
 							if(inAttack.valid){
 								attList->insertAttackList[attList->insertAttackNum++]=inAttack;
 							}
-
-							/*printf("*********************final result\n");
-							printf("stNum : %d\n", inAttack.stNum);
-							printf("sqNum : %d\n", inAttack.sqNum);
-							printf("gcbName : %s\n", inAttack.gcbName);
-							printf("appId : %d\n", inAttack.appId);
-							printf("dstAddress : %s\n", inAttack.dstAddress);
-							printf("vlanId : %d\n", inAttack.vlanId);
-							printf("vlanPriority : %d\n",
-									inAttack.vlanPriority);
-							printf("gocbRef : %s\n", inAttack.gocbRef);
-							printf("timeAllowedtoLive : %d\n",
-									inAttack.timeAllowedtoLive);
-							printf("dataSet : %s\n", inAttack.dataSet);
-							printf("goID : %s\n", inAttack.goID);*/
-
-
-						} else if (!strcmp(value, "modifyAttack")) {
+						}
+						else if (!strcmp(value, "modifyAttack")) {
 							struct ModifyAttack mdfAttack=parserModifyAttackXML(cur_node);
 							if(mdfAttack.valid){
 								attList->modifyAttackList[attList->modifyAttackNum++]=mdfAttack;
 							}
-							/*printf("*********************modify attack final result\n");
-							printf("stnum is %d\n",mdfAttack.condition_st);
-							printf("sqnum is %d\n",mdfAttack.condition_sq);
-							printf("gcb is %s\n",mdfAttack.condition_gcb);
-							printf("time is %d\n",mdfAttack.condition_time);
-							printf("arrayIndex is %d\n",mdfAttack.modifications[0].arrayIndex);
-							printf("modifiedvalue is %s\n",mdfAttack.modifications[0].modifiedvalue);*/
-						}else if (!strcmp(value, "dosAttack")){
+						}
+						else if (!strcmp(value, "dosAttack")){
 							struct DosAttack dosAttack=parserDosAttackXML(cur_node);
 							if(dosAttack.valid){
 								attList->dosAttackList[attList->dosAttackNum++]=dosAttack;
 							}
-							/*printf("*********************DoS attack final result\n");
-							printf("stNum : %d\n", dosAttack.stNum);
-							printf("sqNum : %d\n", dosAttack.sqNum);
-							printf("gcbName : %s\n", dosAttack.gcbName);
-							printf("appId : %d\n", dosAttack.appId);
-							printf("dstAddress : %s\n", dosAttack.dstAddress);
-							printf("vlanId : %d\n", dosAttack.vlanId);
-							printf("vlanPriority : %d\n",dosAttack.vlanPriority);
-							printf("gocbRef : %s\n", dosAttack.gocbRef);
-							printf("timeAllowedtoLive : %d\n",dosAttack.timeAllowedtoLive);
-							printf("dataSet : %s\n", dosAttack.dataSet);
-							printf("goID : %s\n", dosAttack.goID);*/
 						}
 						xmlFree(value);
 						break;

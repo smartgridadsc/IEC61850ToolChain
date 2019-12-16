@@ -22,7 +22,7 @@ extern IedModel iedModel;
 static IedServer iedServer = NULL;
 
 bool enableInsertAttack=false;
-bool enableModifyAttack=false;
+bool enableModifyAttack=true;
 bool enableDosAttack=false ;
 int executedInsertAttackCount=0;
 int executedModifyAttackCount=0;
@@ -227,11 +227,12 @@ const char** getfield(char *line) {
 	char delim[] = ",";
 
 	char *ptr = strtok(line, delim);
+	printf("%s\n", line);
 	char **results;
-	results = (char**) malloc(sizeof(char*) * 4);
+	results = (char**) malloc(sizeof(char*) * 30);//todo: size should be dynamic setting by the column numbers.
 	int i = 0;
 	while (ptr != NULL) {
-		results[i] = malloc(sizeof(char) * 4);
+		results[i] = malloc(sizeof(char) * 20);
 		if (!results[i]) {
 			printf("malloc failed\n");
 		} else {
@@ -239,6 +240,7 @@ const char** getfield(char *line) {
 		}
 		i++;
 		ptr = strtok(NULL, delim);
+
 	}
 	return results;
 }
