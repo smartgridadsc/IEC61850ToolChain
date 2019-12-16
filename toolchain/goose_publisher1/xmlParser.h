@@ -14,7 +14,7 @@
 #define MAXIMUM_MODIFICATION_SIZE 25
 #define MAXIMUM_CONDITION_PAYLOAD_SIZE 10
 
-struct AttackList parserAttacks(xmlNode *a_node);
+struct AttackList* parserAttacks(xmlNode *a_node);
 char* getAttributeValueByName(char *attributeName, xmlNode *xNolde);
 struct InsertAttackValue parseInsertAttackValue(xmlNode * valueNode);
 struct DosAttackValue parseDosAttackValue(xmlNode * valueNode);
@@ -22,7 +22,7 @@ struct InsertAttack parserInsertAttackXML(xmlNode *attackNode);
 struct ModifyAttack parserModifyAttackXML(xmlNode *attackNode);
 struct DosAttack parserDosAttackXML(xmlNode *attackNode);
 struct ModifyAttackModification parseModifyAttackValue(xmlNode * modificationNode);
-struct AttackList getAttackList();
+struct AttackList* getAttackList();
 double getRuningTime();
 struct PayloadCondition parserPayloadCondtion(xmlNode *payloadCondtionNode);
 struct InsertAttackValue{

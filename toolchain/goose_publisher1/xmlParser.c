@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include "xmlParser.h"
 #include <unistd.h>
-#define ATTACKSCENARIOXML "/home/liyuan/IEC61850ToolChain/toolchain/goose_publisher1/AttackScenarioConfiguration.xml"
+#define ATTACKSCENARIOXML "AttackScenarioConfiguration.xml"
 /*
  *To compile this file using gcc you can type
  *gcc `xml2-config --cflags --libs` -o xmlexample libxml2-example.c
@@ -51,45 +51,8 @@ static void print_element_names(xmlNode *a_node) {
 	}
 
 }
-/*int main(int argc, char **argv) {
-	char cwd[PATH_MAX];
-	   if (getcwd(cwd, sizeof(cwd)) != NULL) {
-	       printf("Current working dir: %s\n", cwd);
-	   } else {
-	       perror("getcwd() error");
-	       return 1;
 
-	   }
-	xmlDoc *doc = NULL;
-	xmlNode *root_element = NULL;
-
-	// this initialize the library and check potential ABI mismatches between the version it was compiled for and the actual shared library used.
-	 
-	LIBXML_TEST_VERSION
-
-	struct InsertAttack insertAttacks[MAXIMUM_INSERT_ATTACK];
-	//parse the file and get the DOM
-	doc = xmlReadFile(ATTACKSCENARIOXML, NULL, 0);
-
-	if (doc == NULL) {
-		printf("error: could not parse file %s\n", argv[1]);
-	}
-
-	//Get the root element node 
-	root_element = xmlDocGetRootElement(doc);
-
-	// print_element_names(root_element);
-	parserAttacks(root_element);
-	//free the document 
-	xmlFreeDoc(doc);
-
-	//Free the global variables that may have been allocated by the parser.
-	 
-	xmlCleanupParser();
-
-	return 0;
-}*/
-struct AttackList getAttackList() {
+struct AttackList* getAttackList() {
 
 	xmlDoc *doc = NULL;
 	xmlNode *root_element = NULL;
@@ -106,15 +69,16 @@ struct AttackList getAttackList() {
 	root_element = xmlDocGetRootElement(doc);
 
 	// print_element_names(root_element);
-	struct AttackList attList = parserAttacks(root_element);
+	struct AttackList *attList = parserAttacks(root_element);
 	//xmlFreeDoc(doc); todo: memory collapse happened in this line. Check it later. or call it when finish this program.
 	xmlCleanupParser();
 
 	return attList;
 }
 
-struct AttackList parserAttacks(xmlNode *a_node) {
-	struct AttackList attList;
+struct AttackList* parserAttacks(xmlNode *a_node) {
+	struct AttackList *attList=(struct AttackList*)malloc(sizeof(struct AttackList));
+
 	xmlNode *cur_node = NULL;
 	xmlNode *xmlAttack = a_node->children;
 	for (cur_node = xmlAttack; cur_node; cur_node = cur_node->next) {
@@ -129,7 +93,7 @@ struct AttackList parserAttacks(xmlNode *a_node) {
 						if (!strcmp(value, "insertAttack")) {
 							struct InsertAttack inAttack =parserInsertAttackXML(cur_node);
 							if(inAttack.valid){
-								attList.insertAttackList[attList.insertAttackNum++]=inAttack;
+								attList->insertAttackList[attList->insertAttackNum++]=inAttack;
 							}
 
 							/*printf("*********************final result\n");
@@ -151,7 +115,7 @@ struct AttackList parserAttacks(xmlNode *a_node) {
 						} else if (!strcmp(value, "modifyAttack")) {
 							struct ModifyAttack mdfAttack=parserModifyAttackXML(cur_node);
 							if(mdfAttack.valid){
-								attList.modifyAttackList[attList.modifyAttackNum++]=mdfAttack;
+								attList->modifyAttackList[attList->modifyAttackNum++]=mdfAttack;
 							}
 							/*printf("*********************modify attack final result\n");
 							printf("stnum is %d\n",mdfAttack.condition_st);
@@ -163,7 +127,7 @@ struct AttackList parserAttacks(xmlNode *a_node) {
 						}else if (!strcmp(value, "dosAttack")){
 							struct DosAttack dosAttack=parserDosAttackXML(cur_node);
 							if(dosAttack.valid){
-								attList.dosAttackList[attList.dosAttackNum++]=dosAttack;
+								attList->dosAttackList[attList->dosAttackNum++]=dosAttack;
 							}
 							/*printf("*********************DoS attack final result\n");
 							printf("stNum : %d\n", dosAttack.stNum);
