@@ -6,7 +6,7 @@
 			<stNum value="5"/>
 			<sqNum value="0"/>
 			<gcbName value="Alarm"/>
-			<time value="3"/>
+			<time value="5"/>
 			<payload_conditions>
 				<!--payload_condition index="1" type="string" value="string"/-->
 				<!--payload_condition index="1" type="numeric" value="5" operator="equal"/-->
@@ -63,13 +63,13 @@
 			</values>
 		</payload>
 	</attack>
-	<attack name="modifyAttack" enable="true">
+	<attack name="modifyAttack" enable="false">
 		<condition>
 			<conditionType value="2"/>
 			<stNum value="5"/>
 			<sqNum value="0"/>
 			<gcbName value="Alarm"/>
-			<time value="3"/>
+			<time value="5"/>
 		</condition>
 		<payload>
 			<interface value="lo"/>
@@ -134,13 +134,13 @@
 			<packetsNum value="100"/>
 		</stop_condition>
 	</attack>
-	<attack name="dosAttack" enable="false">
+	<attack name="dosAttack" enable="true">
 		<condition>
-			<conditionType value="1"/>
+			<conditionType value="2"/>
 			<stNum value="1"/>
 			<sqNum value="0"/>
 			<gcbName value="Alarm"/>
-			<time value="10"/>
+			<time value="5"/>
 			<payload_conditions>
 				<!--payload_condition index="1" type="string" value="string"/-->
 				<!--payload_condition index="1" type="numeric" value="5" operator="equal"/-->

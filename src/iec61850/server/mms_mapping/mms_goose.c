@@ -300,9 +300,10 @@ MmsGooseControlBlock_checkAndPublish(MmsGooseControlBlock self, uint64_t current
 #if (CONFIG_MMS_THREADLESS_STACK != 1)
         Semaphore_wait(self->publisherMutex);
 #endif
-
+        //printf("liyuantest6666666\n");
+        //todo: should add call back function here:Modify
         GoosePublisher_publish(self->publisher, self->dataSetValues);
-
+        //todo: should add call back function here:Inject and DoS
         if (self->retransmissionsLeft > 0) {
             self->nextPublishTime = currentTime + self->minTime;
 

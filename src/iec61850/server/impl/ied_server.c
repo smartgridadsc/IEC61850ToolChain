@@ -594,7 +594,6 @@ IedServer_start(IedServer self, int tcpPort)
 
         Thread_start(serverThread);
 #else
-
         MmsServer_startListening(self->mmsServer, tcpPort);
         MmsMapping_startEventWorkerThread(self->mmsMapping);
 #endif

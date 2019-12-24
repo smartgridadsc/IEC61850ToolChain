@@ -3100,6 +3100,7 @@ GOOSE_processGooseEvents(MmsMapping* self, uint64_t currentTimeInMs)
         MmsGooseControlBlock mmsGCB = (MmsGooseControlBlock) element->data;
 
         if (MmsGooseControlBlock_isEnabled(mmsGCB)) {
+        	//printf("test555555\n");
             MmsGooseControlBlock_checkAndPublish(mmsGCB, currentTimeInMs);
         }
 
@@ -3113,7 +3114,7 @@ GOOSE_processGooseEvents(MmsMapping* self, uint64_t currentTimeInMs)
 
 static void
 processPeriodicTasks(MmsMapping* self)
-{
+{//printf("test44444\n");
     uint64_t currentTimeInMs = Hal_getTimeInMs();
 
 #if (CONFIG_INCLUDE_GOOSE_SUPPORT == 1)
@@ -3155,7 +3156,7 @@ eventWorkerThread(MmsMapping* self)
     self->reportThreadFinished = false;
 
     while (running) {
-
+    	//printf("test333333\n");
         processPeriodicTasks(self);
 
         Thread_sleep(1); /* hand-over control to other threads */

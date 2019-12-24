@@ -1,3 +1,5 @@
+#ifndef XMLPARSER_H
+#define XMLPARSER_H
 #include <string.h>
 #include <stdbool.h>
 #include <libxml/parser.h>
@@ -11,16 +13,17 @@
 #define MAXIMUM_MODIFY_ATTACK 10
 #define MAXIMUM_DOS_ATTACK 10
 #define ATTACK_LABLE_NAME "attack"
-#define MAXIMUM_MODIFICATION_SIZE 25
+#define MAXIMUM_MODIFICATION_SIZE 5
 #define MAXIMUM_CONDITION_PAYLOAD_SIZE 10
 
 struct AttackList* parserAttacks(xmlNode *a_node);
 char* getAttributeValueByName(char *attributeName, xmlNode *xNolde);
 struct InsertAttackValue parseInsertAttackValue(xmlNode * valueNode);
 struct DosAttackValue parseDosAttackValue(xmlNode * valueNode);
-struct InsertAttack parserInsertAttackXML(xmlNode *attackNode);
+struct InsertAttack* parserInsertAttackXML(xmlNode *attackNode);
 struct ModifyAttack parserModifyAttackXML(xmlNode *attackNode);
-struct DosAttack parserDosAttackXML(xmlNode *attackNode);
+struct ModifyAttack* parserModifyAttackXML2(xmlNode *attackNode);
+struct DosAttack* parserDosAttackXML(xmlNode *attackNode);
 struct ModifyAttackModification parseModifyAttackValue(xmlNode * modificationNode);
 struct AttackList* getAttackList();
 double getRuningTime();
@@ -90,9 +93,10 @@ struct DosAttack{
 	int timeAllowedtoLive;
 	char dataSet[50];
 	char goID[50];
-	struct DosAttackValue values[25];
 	/*define stop contition*/
 	int stopCondition_packetNum;
+	struct DosAttackValue values[5];
+
 
 };
 
@@ -119,9 +123,9 @@ struct AttackList{
 	int insertAttackNum;
 	int modifyAttackNum;
 	int dosAttackNum;
-	struct InsertAttack insertAttackList[MAXIMUM_INSERT_ATTACK];
-	struct ModifyAttack modifyAttackList[MAXIMUM_MODIFY_ATTACK];
-	struct DosAttack dosAttackList[MAXIMUM_DOS_ATTACK];
+	struct InsertAttack* insertAttackList[MAXIMUM_INSERT_ATTACK];
+	struct ModifyAttack* modifyAttackList[MAXIMUM_MODIFY_ATTACK];
+	struct DosAttack* dosAttackList[MAXIMUM_DOS_ATTACK];
 };
 
-
+#endif
