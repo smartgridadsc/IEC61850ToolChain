@@ -30,4 +30,5 @@ void createDoSAttackThread(struct DosAttack* dAttack);
 void launchDoSAttack(IedServer iedserver,char **results);
 bool payloadConditionTrigger(struct PayloadCondition condition_payloads[MAXIMUM_CONDITION_PAYLOAD_SIZE],char **results);
 char ** getResults();
+void assignPayloadValue();
 #endif

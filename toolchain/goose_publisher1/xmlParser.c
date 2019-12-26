@@ -55,6 +55,8 @@ struct AttackList* getAttackList() {
 
 struct AttackList* parserAttacks(xmlNode *a_node) {
 	struct AttackList *attList=(struct AttackList*)malloc(sizeof(struct AttackList));
+	//struct AttackList *attList;
+	initializeList(attList);
 
 	xmlNode *cur_node = NULL;
 	xmlNode *xmlAttack = a_node->children;
@@ -79,20 +81,12 @@ struct AttackList* parserAttacks(xmlNode *a_node) {
 							}
 						}
 						else if (!strcmp(value, "modifyAttack")) {
-							/*struct ModifyAttack mdfAttack=parserModifyAttackXML(cur_node);
-							if(mdfAttack.valid){
-								if(mdfAttack.condition_type==CONDITION_TIME){// if trigger condition is time, set timer event
-									setTimerforModifyAttack(&mdfAttack);
-								}else{
-									attList->modifyAttackList[attList->modifyAttackNum++]=mdfAttack;
-								}
-							}*/
 							struct ModifyAttack* mdfAttack=parserModifyAttackXML2(cur_node);
 							if(mdfAttack->valid){
 								if(mdfAttack->condition_type==CONDITION_TIME){// if trigger condition is time, set timer event
 									setTimerforModifyAttack(mdfAttack);
 								}else{
-									//attList->modifyAttackList[attList->modifyAttackNum++]=mdfAttack;
+									attList->modifyAttackList[attList->modifyAttackNum++]=mdfAttack;
 								}
 							}
 						}
@@ -649,5 +643,25 @@ struct PayloadCondition parserPayloadCondtion(xmlNode *payloadCondtionNode){
 		strcpy(pCondition.operator, getAttributeValueByName("operator",payloadCondtionNode));
 	}
 	return pCondition;
+}
+void initializeList(struct AttackList *attList){
+	attList->insertAttackNum=0;
+	attList->modifyAttackNum=0;
+	attList->dosAttackNum=0;
+	/*int i=0;
+	for(i;i<MAXIMUM_DOS_ATTACK;i++){
+		printf("value is %d \n",attList->dosAttackList[i]->valid);
+		attList->dosAttackList[i]->valid=0;
+		printf("value is %d \n",attList->dosAttackList[i]->valid);
+	}
+	i=0;
+	for(i=0;i<MAXIMUM_MODIFY_ATTACK;i++){
+		attList->modifyAttackList[i]->valid=false;
+	}
+	i=0;
+	for(i=0;i<MAXIMUM_INSERT_ATTACK;i++){
+		attList->insertAttackList[i]->valid=false;
+	}*/
+
 }
 

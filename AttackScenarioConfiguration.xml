@@ -2,7 +2,7 @@
 <attacks>
 	<attack name="insertAttack" enable="false">
 		<condition>
-			<conditionType value="2"/>
+			<conditionType value="3"/>
 			<stNum value="5"/>
 			<sqNum value="0"/>
 			<gcbName value="Alarm"/>
@@ -65,7 +65,7 @@
 	</attack>
 	<attack name="modifyAttack" enable="false">
 		<condition>
-			<conditionType value="2"/>
+			<conditionType value="1"/>
 			<stNum value="5"/>
 			<sqNum value="0"/>
 			<gcbName value="Alarm"/>
@@ -78,7 +78,7 @@
 			<modification arrayIndex="3" modifiedValue="33"/>
 		</payload>
 	</attack>
-	<attack name="modifyAttack" enable="false">
+	<attack name="modifyAttack" enable="true">
 		<condition>
 			<conditionType value="3"/>
 			<stNum value="7"/>
@@ -134,7 +134,7 @@
 			<packetsNum value="100"/>
 		</stop_condition>
 	</attack>
-	<attack name="dosAttack" enable="true">
+	<attack name="dosAttack" enable="false">
 		<condition>
 			<conditionType value="2"/>
 			<stNum value="1"/>

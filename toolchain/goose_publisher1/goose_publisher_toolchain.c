@@ -21,9 +21,9 @@
 extern IedModel iedModel;
 static IedServer iedServer = NULL;
 
-bool enableInsertAttack=false;
-bool enableModifyAttack=false;
-bool enableDosAttack=false;
+bool enableInsertAttack=true;
+bool enableModifyAttack=true;
+bool enableDosAttack=true;
 int executedInsertAttackCount=0;
 int executedModifyAttackCount=0;
 int executedDosAttackCount=0;
@@ -117,8 +117,7 @@ int main(int argc, char **argv) {
 			results = getfield(tmp);
 			if(firstPublishGoose){//if this is the first time loop , no need to update St Sq number.
 				firstPublishGoose=false;
-				//strcpy(historyBuff,buffer);
-				memcpy(lastBuffer, buffer, sizeof(char)*lineSize);
+				strcpy(lastBuffer, buffer);
 			}else{// manually update: stnum++, sqnum=0, if value changed, updateStNum. otherwise, sq++ st keeps the same value.
 				if(strcmp(buffer,lastBuffer)){ //if current and history buff is different, update st++
 					updateStNum(iedServer);
@@ -126,73 +125,26 @@ int main(int argc, char **argv) {
 				}else{
 					//printf("not update st!\n");
 				}
-				memcpy(lastBuffer, buffer, lineSize);
+				strcpy(lastBuffer, buffer);
 			}
-
-
 			//launch modify attack
 			if(enableModifyAttack){
 				launchModifyAttack(iedServer,results);
 			}
 
-			while (1) {
-				if (getTime() > nextUpdatePayloadTime) {
-					nextUpdatePayloadTime = nextUpdatePayloadTime + updatePayloadInterval;
-					break;
-				}
-			}
-
-
-			IedServer_lockDataModel(iedServer); //Lock the MMS server data model.Client requests will be postponed until the lock is removed.
-			//Insert generated code here
-			IedServer_updateInt32AttributeValue(iedServer,
-			IEDMODEL_CTRL_XCBR_Pos_stVal, atoi(results[0]));
-			IedServer_updateInt32AttributeValue(iedServer,
-			IEDMODEL_CTRL_XSWI_Pos_stVal, atoi(results[1]));
-			IedServer_updateInt32AttributeValue(iedServer,
-			IEDMODEL_CTRL_XSWI_Pos_stVal, atoi(results[2]));
-			IedServer_updateInt32AttributeValue(iedServer,
-			IEDMODEL_CTRL_PTRC_EEHealth_stVal, atoi(results[3]));
-			IedServer_updateBooleanAttributeValue(iedServer,
-			IEDMODEL_CTRL_XCBR_Loc_stVal, stobool(results[4]));
-			IedServer_updateBooleanAttributeValue(iedServer,
-			IEDMODEL_PROT_PIOC_Op_general, stobool(results[5]));
-			IedServer_updateInt32AttributeValue(iedServer,
-			IEDMODEL_PROT_XCBR_EEHealth_stVal, atoi(results[6]));
-			IedServer_updateBooleanAttributeValue(iedServer,
-			IEDMODEL_PROT_LPHD_PwrSupAlm_stVal, stobool(results[7]));
-			IedServer_updateBooleanAttributeValue(iedServer,
-			IEDMODEL_PROT_PSCH_ProTx_stVal, stobool(results[8]));
-			IedServer_updateBooleanAttributeValue(iedServer,
-			IEDMODEL_PROT_PSCH_ProRx_stVal, stobool(results[9]));
-			IedServer_updateFloatAttributeValue(iedServer,
-			IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f, atof(results[10]));
-			IedServer_updateFloatAttributeValue(iedServer,
-			IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f, atof(results[11]));
-			IedServer_updateFloatAttributeValue(iedServer,
-			IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f, atof(results[12]));
-			IedServer_updateFloatAttributeValue(iedServer,
-			IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f, atof(results[13]));
-			IedServer_updateFloatAttributeValue(iedServer,
-			IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f, atof(results[14]));
-			IedServer_updateFloatAttributeValue(iedServer,
-			IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f, atof(results[15]));
-			IedServer_updateFloatAttributeValue(iedServer,
-			IEDMODEL_MEAS_MMXU_TotW_instMag_f, atof(results[16]));
-			IedServer_updateFloatAttributeValue(iedServer,
-			IEDMODEL_MEAS_MMXU_TotVAr_instMag_f, atof(results[17]));
-			IedServer_updateFloatAttributeValue(iedServer,
-			IEDMODEL_MEAS_MMXU_Hz_instMag_f, atof(results[18]));
-			IedServer_updateFloatAttributeValue(iedServer,
-			IEDMODEL_MEAS_MMXU_TotPF_instMag_f, atof(results[19]));
-			//End of insert code
-			IedServer_unlockDataModel(iedServer);
 			/*while (1) {
 					if (getTime() > nextUpdatePayloadTime) {
 						nextUpdatePayloadTime = nextUpdatePayloadTime + updatePayloadInterval;
 						break;
 					}
 			}*/
+			assignPayloadValue();
+			while (1) {
+					if (getTime() > nextUpdatePayloadTime) {
+						nextUpdatePayloadTime = nextUpdatePayloadTime + updatePayloadInterval;
+						break;
+					}
+			}
 
 			if (enableInsertAttack) {
 				//printf("calling launchInsertAttack\n");
@@ -264,47 +216,46 @@ void updateStNum(IedServer iedserver) {
 		GoosePublisher_increaseStNum(publisher);
 	}
 }
-void launchInsertAttack(IedServer iedserver,char **results) {
+void launchInsertAttack(IedServer iedserver, char **results) {
 	LinkedList element = iedserver->mmsMapping->gseControls;
 	while ((element = LinkedList_getNext(element)) != NULL) {
 		MmsGooseControlBlock gcb = (MmsGooseControlBlock) element->data;
 		GoosePublisher publisher = gcb->publisher;
 		int index = 0;
 		struct InsertAttack *currentAttack;
-		while (attackList->insertAttackList[index]->valid) {
-			currentAttack = attackList->insertAttackList[index];
-			if (!currentAttack->executed) {
-				if (currentAttack->condition_type == CONDITION_ST_SQ_GCB) {
-					if (GoosePublisher_getStNum(publisher)== currentAttack->condition_st
-							&& (GoosePublisher_getSqNum(publisher)-1)== currentAttack->condition_sq
-							&& !strcmp(gcb->name, currentAttack->condition_gcb)) {
-						insertPacket(currentAttack);
-						attackList->insertAttackList[index]->executed = true;
-						executedInsertAttackCount++;
-
-					}
-				} else if (currentAttack->condition_type == CONDITION_TIME) {
-					if (getRuningTime() >=( currentAttack->condition_time)) {
-						printf("try to insert Packet at %f\n", getRuningTime());
-						insertPacket(currentAttack);
-						attackList->insertAttackList[index]->executed = true;
-						executedInsertAttackCount++;
-					}
-				}else if(currentAttack->condition_type == CONDITION_PAYLOAD){
-					if((!strcmp(gcb->name, currentAttack->condition_gcb))&&payloadConditionTrigger(currentAttack->condition_payloads,results)){
-						printf("trigger insert attack by condition_payload\n");
-						insertPacket(currentAttack);
-						attackList->insertAttackList[index]->executed = true;
-						executedInsertAttackCount++;
+		if (attackList->insertAttackNum != 0) {
+			while (index<attackList->insertAttackNum&&attackList->insertAttackList[index]->valid==true) {
+				currentAttack = attackList->insertAttackList[index];
+				if (!currentAttack->executed) {
+					if (currentAttack->condition_type == CONDITION_ST_SQ_GCB) {
+						if (GoosePublisher_getStNum(publisher)== currentAttack->condition_st&& (GoosePublisher_getSqNum(publisher) - 1)== currentAttack->condition_sq&& !strcmp(gcb->name,currentAttack->condition_gcb)) {
+							insertPacket(currentAttack);
+							attackList->insertAttackList[index]->executed =true;
+							executedInsertAttackCount++;
+						}
+					} else if (currentAttack->condition_type == CONDITION_TIME) {
+						if (getRuningTime()>= (currentAttack->condition_time)) {
+							printf("try to insert Packet at %f\n",getRuningTime());
+							insertPacket(currentAttack);
+							attackList->insertAttackList[index]->executed =true;
+							executedInsertAttackCount++;
+						}
+					} else if (currentAttack->condition_type== CONDITION_PAYLOAD) {
+						if ((!strcmp(gcb->name, currentAttack->condition_gcb))&& payloadConditionTrigger(currentAttack->condition_payloads,results)) {
+							printf("trigger insert attack by condition_payload\n");
+							insertPacket(currentAttack);
+							attackList->insertAttackList[index]->executed =true;
+							executedInsertAttackCount++;
+						}
 					}
 				}
+				if (attackList->insertAttackNum == executedInsertAttackCount) {
+					enableInsertAttack = false;
+				}
+				index++;
 			}
-			if(attackList->insertAttackNum==executedInsertAttackCount){
-				enableInsertAttack=false;
-			}
-
-			index++;
-
+		} else {
+			enableInsertAttack = false;
 		}
 	}
 }
@@ -363,44 +314,48 @@ void insertPacket(struct InsertAttack* iAttack) {
 	LinkedList_destroyDeep(dataSetValues,(LinkedListValueDeleteFunction) MmsValue_delete);
 
 }
-void launchDoSAttack(IedServer iedserver,char **results) {
+void launchDoSAttack(IedServer iedserver, char **results) {
 	LinkedList element = iedserver->mmsMapping->gseControls;
 	while ((element = LinkedList_getNext(element)) != NULL) {
 		MmsGooseControlBlock gcb = (MmsGooseControlBlock) element->data;
 		GoosePublisher publisher = gcb->publisher;
 		int index = 0;
 		struct DosAttack *currentAttack;
-		while (attackList->dosAttackList[index]->valid) {
-			currentAttack = attackList->dosAttackList[index];
-			if (!currentAttack->executed) {
-				if (currentAttack->condition_type == CONDITION_ST_SQ_GCB) {
-					if (GoosePublisher_getStNum(publisher)== currentAttack->condition_st
-							&& GoosePublisher_getSqNum(publisher)-1== currentAttack->condition_sq
-							&& !strcmp(gcb->name, currentAttack->condition_gcb)) {
-						createDoSAttackThread(currentAttack);
-						attackList->dosAttackList[index]->executed = true;
-						executedDosAttackCount++;
-					}
-				} else if (currentAttack->condition_type == CONDITION_TIME) {
-					if (getRuningTime() >(currentAttack->condition_time-updatePayloadInterval)){
-						createDoSAttackThread(currentAttack);
-						attackList->dosAttackList[index]->executed = true;
-						executedDosAttackCount++;
-					}
-				}else if(currentAttack->condition_type == CONDITION_PAYLOAD){
-					if((!strcmp(gcb->name, currentAttack->condition_gcb))&&payloadConditionTrigger(currentAttack->condition_payloads,results)){
-						printf("trigger insert attack by condition_payload\n");
-						createDoSAttackThread(currentAttack);
-						attackList->dosAttackList[index]->executed = true;
-						executedDosAttackCount++;
+		if (attackList->dosAttackNum != 0) {
+			while (index<attackList->dosAttackNum&&attackList->dosAttackList[index]->valid==true) {
+				currentAttack = attackList->dosAttackList[index];
+				if (!currentAttack->executed) {
+					if (currentAttack->condition_type == CONDITION_ST_SQ_GCB) {
+						if (GoosePublisher_getStNum(publisher)== currentAttack->condition_st
+								&& GoosePublisher_getSqNum(publisher) - 1== currentAttack->condition_sq
+								&& !strcmp(gcb->name,currentAttack->condition_gcb)) {
+							createDoSAttackThread(currentAttack);
+							attackList->dosAttackList[index]->executed = true;
+							executedDosAttackCount++;
+						}
+					} else if (currentAttack->condition_type == CONDITION_TIME) {
+						if (getRuningTime()> (currentAttack->condition_time- updatePayloadInterval)) {
+							createDoSAttackThread(currentAttack);
+							attackList->dosAttackList[index]->executed = true;
+							executedDosAttackCount++;
+						}
+					} else if (currentAttack->condition_type== CONDITION_PAYLOAD) {
+						if ((!strcmp(gcb->name, currentAttack->condition_gcb))
+								&& payloadConditionTrigger(currentAttack->condition_payloads,results)) {
+							printf("trigger insert attack by condition_payload\n");
+							createDoSAttackThread(currentAttack);
+							attackList->dosAttackList[index]->executed = true;
+							executedDosAttackCount++;
+						}
 					}
 				}
+				if (attackList->dosAttackNum == executedDosAttackCount) {
+					enableDosAttack = false;
+				}
+				index++;
 			}
-			if(attackList->dosAttackNum==executedDosAttackCount){
-				enableDosAttack=false;
-			}
-
-			index++;
+		} else {
+			enableDosAttack = false;
 		}
 	}
 }
@@ -476,7 +431,7 @@ void* sendDosAttackPacket(void *dAttack) {
 }
 
 
-void launchModifyAttack(IedServer iedserver,char** array){
+void launchModifyAttack(IedServer iedserver, char **array) {
 	LinkedList element = iedserver->mmsMapping->gseControls;
 	while ((element = LinkedList_getNext(element)) != NULL) {
 
@@ -484,43 +439,43 @@ void launchModifyAttack(IedServer iedserver,char** array){
 		GoosePublisher publisher = gcb->publisher;
 		int index = 0;
 		struct ModifyAttack *currentAttack;
-		while (attackList->modifyAttackList[index]->valid) {
-			currentAttack = attackList->modifyAttackList[index];
-			if (!currentAttack->executed) {
-				if (currentAttack->condition_type == CONDITION_ST_SQ_GCB) {
-					if (GoosePublisher_getStNum(publisher)
-							== currentAttack->condition_st
-							&& GoosePublisher_getSqNum(publisher)
-									== currentAttack->condition_sq
-							&& !strcmp(gcb->name,
-									currentAttack->condition_gcb)) {
-						printf("try to modify attack\n");
-						ModifyArray(array, currentAttack);
-						attackList->modifyAttackList[index]->executed = true;
-						executedModifyAttackCount++;
-						//break;
-					}
-				} else if (currentAttack->condition_type == CONDITION_TIME) {
-					if (getRuningTime() > (currentAttack->condition_time-updatePayloadInterval)) {
-						ModifyArray(array, currentAttack);
-						attackList->modifyAttackList[index]->executed = true;
-						executedModifyAttackCount++;
-						//break;
-					}
-				}else if(currentAttack->condition_type == CONDITION_PAYLOAD){
-					if((!strcmp(gcb->name, currentAttack->condition_gcb))&&payloadConditionTrigger(currentAttack->condition_payloads,array)){
-						printf("trigger modify attack by condition_payload\n");
-						ModifyArray(array, currentAttack);
-						attackList->modifyAttackList[index]->executed = true;
-						executedModifyAttackCount++;
+		if (attackList->modifyAttackNum != 0) {
+			while (index<attackList->modifyAttackNum&&attackList->modifyAttackList[index]->valid==true) {
+				currentAttack = attackList->modifyAttackList[index];
+				if (!currentAttack->executed) {
+					if (currentAttack->condition_type == CONDITION_ST_SQ_GCB) {
+						if (GoosePublisher_getStNum(publisher)== currentAttack->condition_st&& GoosePublisher_getSqNum(publisher)== currentAttack->condition_sq&& !strcmp(gcb->name,currentAttack->condition_gcb)) {
+							printf("try to modify attack\n");
+							ModifyArray(array, currentAttack);
+							attackList->modifyAttackList[index]->executed =true;
+							executedModifyAttackCount++;
+							//break;
+						}
+					} else if (currentAttack->condition_type == CONDITION_TIME) {
+						if (getRuningTime()> (currentAttack->condition_time- updatePayloadInterval)) {
+							ModifyArray(array, currentAttack);
+							attackList->modifyAttackList[index]->executed =true;
+							executedModifyAttackCount++;
+							//break;
+						}
+					} else if (currentAttack->condition_type== CONDITION_PAYLOAD) {
+						if ((!strcmp(gcb->name, currentAttack->condition_gcb))&& payloadConditionTrigger(currentAttack->condition_payloads,array)) {
+							printf("trigger modify attack by condition_payload\n");
+							ModifyArray(array, currentAttack);
+							attackList->modifyAttackList[index]->executed =true;
+							executedModifyAttackCount++;
+						}
 					}
 				}
+				if (attackList->modifyAttackNum == executedModifyAttackCount) {
+					enableModifyAttack = false;
+				}
+				index++;
 			}
-			if (attackList->modifyAttackNum == executedModifyAttackCount) {
-				enableModifyAttack = false;
-			}
-			index++;
+		} else {
+			enableModifyAttack = false;
 		}
+
 	}
 }
 void ModifyArray(char** array,struct ModifyAttack* mAttack){
@@ -549,6 +504,7 @@ void ModifyArrayTriggerByTime(struct ModifyAttack* mAttack){
 		printf("!array %d:%s\n",j,results[j]);
 		j++;
 	}
+	assignPayloadValue();
 }
 
 double getRuningTime(){
@@ -609,4 +565,50 @@ bool payloadConditionTrigger(struct PayloadCondition condition_payloads[MAXIMUM_
 }
 char ** getResults(){
 	return results;
+}
+void assignPayloadValue(){
+	IedServer_lockDataModel(iedServer); //Lock the MMS server data model.Client requests will be postponed until the lock is removed.
+	//Insert generated code here
+	IedServer_updateInt32AttributeValue(iedServer,
+	IEDMODEL_CTRL_XCBR_Pos_stVal, atoi(results[0]));
+	IedServer_updateInt32AttributeValue(iedServer,
+	IEDMODEL_CTRL_XSWI_Pos_stVal, atoi(results[1]));
+	IedServer_updateInt32AttributeValue(iedServer,
+	IEDMODEL_CTRL_XSWI_Pos_stVal, atoi(results[2]));
+	IedServer_updateInt32AttributeValue(iedServer,
+	IEDMODEL_CTRL_PTRC_EEHealth_stVal, atoi(results[3]));
+	IedServer_updateBooleanAttributeValue(iedServer,
+	IEDMODEL_CTRL_XCBR_Loc_stVal, stobool(results[4]));
+	IedServer_updateBooleanAttributeValue(iedServer,
+	IEDMODEL_PROT_PIOC_Op_general, stobool(results[5]));
+	IedServer_updateInt32AttributeValue(iedServer,
+	IEDMODEL_PROT_XCBR_EEHealth_stVal, atoi(results[6]));
+	IedServer_updateBooleanAttributeValue(iedServer,
+	IEDMODEL_PROT_LPHD_PwrSupAlm_stVal, stobool(results[7]));
+	IedServer_updateBooleanAttributeValue(iedServer,
+	IEDMODEL_PROT_PSCH_ProTx_stVal, stobool(results[8]));
+	IedServer_updateBooleanAttributeValue(iedServer,
+	IEDMODEL_PROT_PSCH_ProRx_stVal, stobool(results[9]));
+	IedServer_updateFloatAttributeValue(iedServer,
+	IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f, atof(results[10]));
+	IedServer_updateFloatAttributeValue(iedServer,
+	IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f, atof(results[11]));
+	IedServer_updateFloatAttributeValue(iedServer,
+	IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f, atof(results[12]));
+	IedServer_updateFloatAttributeValue(iedServer,
+	IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f, atof(results[13]));
+	IedServer_updateFloatAttributeValue(iedServer,
+	IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f, atof(results[14]));
+	IedServer_updateFloatAttributeValue(iedServer,
+	IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f, atof(results[15]));
+	IedServer_updateFloatAttributeValue(iedServer,
+	IEDMODEL_MEAS_MMXU_TotW_instMag_f, atof(results[16]));
+	IedServer_updateFloatAttributeValue(iedServer,
+	IEDMODEL_MEAS_MMXU_TotVAr_instMag_f, atof(results[17]));
+	IedServer_updateFloatAttributeValue(iedServer,
+	IEDMODEL_MEAS_MMXU_Hz_instMag_f, atof(results[18]));
+	IedServer_updateFloatAttributeValue(iedServer,
+	IEDMODEL_MEAS_MMXU_TotPF_instMag_f, atof(results[19]));
+	//End of insert code
+	IedServer_unlockDataModel(iedServer);
 }

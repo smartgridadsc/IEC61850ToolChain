@@ -28,6 +28,7 @@ struct ModifyAttackModification parseModifyAttackValue(xmlNode * modificationNod
 struct AttackList* getAttackList();
 double getRuningTime();
 struct PayloadCondition parserPayloadCondtion(xmlNode *payloadCondtionNode);
+void initializeList(struct AttackList *attList);
 struct InsertAttackValue{
 	char type[20];
 	char value[50];
