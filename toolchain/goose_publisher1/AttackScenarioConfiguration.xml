@@ -10,7 +10,7 @@
 			<payload_conditions>
 				<!--payload_condition index="1" type="string" value="string"/-->
 				<!--payload_condition index="1" type="numeric" value="5" operator="equal"/-->
-				<paylaod_condition index="5" type="boolean" value="true"/>
+				<paylaod_condition index="4" type="boolean" value="true"/>
 			</payload_conditions>
 		</condition>
 		<payload>

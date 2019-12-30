@@ -6,11 +6,11 @@
 #include "mms_goose.h"
 //#include "goose_publisher.h"
 //#include "hal_thread.h"
-#include "models/LIED11.c"
-#include "models/LIED11.h"
+#include "models/static_model.c"
+#include "models/static_model.h"
 #include "xmlParser.h"
 #include "time.h"
-#define DEBUG_MODE 0
+
 
 bool stobool(const char* value);
 const char** getfield(char *line);
