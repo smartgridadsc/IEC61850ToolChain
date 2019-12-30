@@ -6,7 +6,7 @@
 			<stNum value="5"/>
 			<sqNum value="0"/>
 			<gcbName value="Alarm"/>
-			<time value="5"/>
+			<time value="10"/>
 			<payload_conditions>
 				<!--payload_condition index="1" type="string" value="string"/-->
 				<!--payload_condition index="1" type="numeric" value="5" operator="equal"/-->
@@ -14,7 +14,7 @@
 			</payload_conditions>
 		</condition>
 		<payload>
-			<interface value="ens33.1"/>
+			<interface value="lo"/>
 			<stNum value="101"/>
 			<sqNum value="102"/>
 			<gcbName value="103malicious"/>
@@ -63,13 +63,13 @@
 			</values>
 		</payload>
 	</attack>
-	<attack name="modifyAttack" enable="false">
+	<attack name="modifyAttack" enable="true">
 		<condition>
 			<conditionType value="1"/>
 			<stNum value="5"/>
 			<sqNum value="0"/>
 			<gcbName value="Alarm"/>
-			<time value="5"/>
+			<time value="10"/>
 		</condition>
 		<payload>
 			<interface value="lo"/>
@@ -78,7 +78,7 @@
 			<modification arrayIndex="3" modifiedValue="33"/>
 		</payload>
 	</attack>
-	<attack name="modifyAttack" enable="false">
+	<attack name="modifyAttack" enable="true">
 		<condition>
 			<conditionType value="3"/>
 			<stNum value="7"/>
@@ -90,6 +90,7 @@
 				<!--payload_condition index="1" type="numeric" value="5" operator="equal"/-->
 				<paylaod_condition index="5" type="boolean" value="true"/>
 			</payload_conditions>
+			
 		</condition>
 		<payload>
 			<interface value="lo"/>
@@ -97,7 +98,7 @@
 			<modification arrayIndex="2" modifiedValue="55"/>
 		</payload>
 	</attack>
-	<attack name="dosAttack" enable="false">
+	<attack name="dosAttack" enable="true">
 		<condition>
 			<conditionType value="3"/>
 			<stNum value="7"/>
@@ -136,11 +137,11 @@
 	</attack>
 	<attack name="dosAttack" enable="false">
 		<condition>
-			<conditionType value="2"/>
+			<conditionType value="1"/>
 			<stNum value="1"/>
 			<sqNum value="0"/>
 			<gcbName value="Alarm"/>
-			<time value="5"/>
+			<time value="10"/>
 			<payload_conditions>
 				<!--payload_condition index="1" type="string" value="string"/-->
 				<!--payload_condition index="1" type="numeric" value="5" operator="equal"/-->

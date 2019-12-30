@@ -17,6 +17,8 @@
 
 
 #define CSVFILENAME "value.csv"
+#define ATTACKSCENARIOXML "AttackScenarioConfiguration.xml"
+
 /* import IEC 61850 device model created from SCL-File */
 extern IedModel iedModel;
 static IedServer iedServer = NULL;
@@ -39,25 +41,27 @@ int main(int argc, char **argv) {
 	double nextUpdatePayloadTime;
 	int port;
 	char *folder;
-    double programDuration=30;
+    double programDuration;
     updatePayloadInterval=(iedModel.gseCBs->maxTime+iedModel.gseCBs->minTime)/(2*1000);
 
 	if (argc > 2) {
-		interface = "lo";
-		nextUpdatePayloadTime = getTime() + 1;
-		port = 102;
-		folder = argv[4];
+		if (DEBUG_MODE) {
+			 interface = "lo";
+			 nextUpdatePayloadTime = getTime() + 1;
+			 port = 102;
+			 folder = "dummy";
+			 programDuration=30;
+		} else {
+			interface = argv[1];
+			nextUpdatePayloadTime = atof(argv[2]);
+			port = atoi(argv[3]);
+			folder = argv[4];
+			programDuration=atof(argv[5]);
 
-		/*
-		 * interface = argv[1];
-		 nextUpdatePayloadTime=atof(argv[2]);
-		 port=atoi(argv[3]);
-		 folder=argv[4];
-		 * */
+		}
 		//printf("c time is %.3f", getTime());
 	} else {
-		printf(
-				"Use as: sudo ./goose_publisher_toolchain interfaceID currentTimestamp folderName");
+		printf("Use as: sudo ./goose_publisher_toolchain interfaceID currentTimestamp folderName duration");
 	}
 	printf("Using interface %s\n", interface);
 	//beginTime= clock();
@@ -74,25 +78,38 @@ int main(int argc, char **argv) {
 	/* Start GOOSE publishing */
 	IedServer_enableGoosePublishing(iedServer);
 
-	/*prepare csv reading*/
-	/*char relatedCSVFileName[100];
-	 strcpy (relatedCSVFileName,folder);
-	 strcat (relatedCSVFileName,"/");
-	 strcat (relatedCSVFileName,CSVFILENAME);
-	 FILE *stream = fopen(relatedCSVFileName, "r");*/
-	FILE *stream = fopen(CSVFILENAME, "r");
-	char cwd[100];
-	/*if (getcwd(cwd, sizeof(cwd)) != NULL) {
+	/*prepare "value csv file" and "attack scenario file" reading*/
+	FILE *valueFileStream;
+	char attackFileName[100];
+
+	if (DEBUG_MODE) {
+		valueFileStream = fopen(CSVFILENAME, "r");
+		strcpy(attackFileName,ATTACKSCENARIOXML);
+	} else {
+		char valueFileName[100];
+		strcpy(valueFileName, folder);
+		strcat(valueFileName, "/");
+		strcat(valueFileName, CSVFILENAME);
+		valueFileStream = fopen(valueFileName, "r");
+
+		strcpy(attackFileName,folder);
+		strcat(attackFileName,"/");
+		strcat(attackFileName,ATTACKSCENARIOXML);
+	}
+
+
+	/*char cwd[100];
+	if (getcwd(cwd, sizeof(cwd)) != NULL) {
 		printf("Current working dir: %s\n", cwd);
 	}*/
-	if (stream == NULL) {
+	if (valueFileStream == NULL) {
 		printf("Cannot load csv file.\n");
 		exit(-1);
 
 	}
 
 	// Read attack infor from xml file.
-    attackList=getAttackList();
+    attackList=getAttackList(attackFileName);
 
 
 
@@ -111,7 +128,7 @@ int main(int argc, char **argv) {
 	printf("start time is %f\n",getRuningTime());
 	while (getRuningTime()<programDuration) {
 		//printf("iterate time is %f\n",getRuningTime());
-		lineSize = getline(&buffer, &bufsize, stream);
+		lineSize = getline(&buffer, &bufsize, valueFileStream);
 		if (lineSize != -1) { //read a new line from csv
 			char *tmp = strdup(buffer);
 			results = getfield(tmp);
@@ -146,14 +163,15 @@ int main(int argc, char **argv) {
 					}
 			}
 
-			if (enableInsertAttack) {
+			InsertAndDoSAttacks();
+			/*if (enableInsertAttack) {
 				//printf("calling launchInsertAttack\n");
 				launchInsertAttack(iedServer,results);
 			}
 			//launch DoS attack
 			if(enableDosAttack){
 				launchDoSAttack(iedServer,results);
-			}
+			}*/
 
 			free(tmp);
 			free(results);
@@ -216,8 +234,9 @@ void updateStNum(IedServer iedserver) {
 		GoosePublisher_increaseStNum(publisher);
 	}
 }
-void launchInsertAttack(IedServer iedserver, char **results) {
-	LinkedList element = iedserver->mmsMapping->gseControls;
+//void launchInsertAttack(IedServer iedserver, char **results) {
+void launchInsertAttack() {
+	LinkedList element = iedServer->mmsMapping->gseControls;
 	while ((element = LinkedList_getNext(element)) != NULL) {
 		MmsGooseControlBlock gcb = (MmsGooseControlBlock) element->data;
 		GoosePublisher publisher = gcb->publisher;
@@ -314,8 +333,9 @@ void insertPacket(struct InsertAttack* iAttack) {
 	LinkedList_destroyDeep(dataSetValues,(LinkedListValueDeleteFunction) MmsValue_delete);
 
 }
-void launchDoSAttack(IedServer iedserver, char **results) {
-	LinkedList element = iedserver->mmsMapping->gseControls;
+//void launchDoSAttack(IedServer iedserver, char **results) {
+void launchDoSAttack() {
+	LinkedList element = iedServer->mmsMapping->gseControls;
 	while ((element = LinkedList_getNext(element)) != NULL) {
 		MmsGooseControlBlock gcb = (MmsGooseControlBlock) element->data;
 		GoosePublisher publisher = gcb->publisher;
@@ -611,4 +631,13 @@ void assignPayloadValue(){
 	IEDMODEL_MEAS_MMXU_TotPF_instMag_f, atof(results[19]));
 	//End of insert code
 	IedServer_unlockDataModel(iedServer);
+}
+void InsertAndDoSAttacks(){
+	if (enableInsertAttack) {
+		launchInsertAttack();
+	}
+	//launch DoS attack
+	if(enableDosAttack){
+		launchDoSAttack();
+	}
 }

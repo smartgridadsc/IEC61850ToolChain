@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
 <Simulations>
-	<!--<IED name="IED1" folder="goose_publisher1" interface="ens33.1" port="102"/>-->
-	<IED name="IED2" folder="goose_publisher2" interface="ens33.2" port="103"/>
+	<IED name="IED1" folder="goose_publisher1" interface="ens33.1" port="102" duration="40"/>
+	<!--IED name="IED2" folder="goose_publisher2" interface="ens33.2" port="103" duration="40"/-->
 </Simulations>

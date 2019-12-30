@@ -12,8 +12,8 @@ print(milli_sec)
 
 
 
-def run_one_toolchain(folder,interface, timestamp, port):
-    cmd = 'sudo ./'+folder+'/goose_publisher_toolchain '+interface+' '+str(milli_sec+2)+' '+str(port)+' '+folder
+def run_one_toolchain(folder,interface, timestamp, port,duration):
+    cmd = 'sudo ./'+folder+'/goose_publisher_toolchain '+interface+' '+str(milli_sec+2)+' '+str(port)+' '+folder+' '+duration
     print cmd;
     os.system(cmd)
 
@@ -27,7 +27,7 @@ print args
 
 
 for i in args:
-   p = Process(target=run_one_toolchain, args=(i[0], i[1],milli_sec,i[2]))
+   p = Process(target=run_one_toolchain, args=(i[0], i[1],milli_sec,i[2],i[3]))
    p.start()
    processes.append(p)
 

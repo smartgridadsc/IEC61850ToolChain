@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <attacks>
-	<attack name="insertAttack" enable="false">
+	<attack name="insertAttack" enable="true">
 		<condition>
 			<conditionType value="3"/>
 			<stNum value="5"/>
@@ -78,7 +78,7 @@
 			<modification arrayIndex="3" modifiedValue="33"/>
 		</payload>
 	</attack>
-	<attack name="modifyAttack" enable="true">
+	<attack name="modifyAttack" enable="false">
 		<condition>
 			<conditionType value="3"/>
 			<stNum value="7"/>

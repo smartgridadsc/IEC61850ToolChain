@@ -1,47 +1,24 @@
 #include <stdio.h>
 #include "xmlParser.h"
 #include <unistd.h>
-#define ATTACKSCENARIOXML "AttackScenarioConfiguration.xml"
+
 /*
  *To compile this file using gcc you can type
  *gcc `xml2-config --cflags --libs` -o xmlexample libxml2-example.c
  * gcc -I/usr/include/libxml2  xmlParser.c -o xmlParser -lxml2
  */
-/*static void print_element_names(xmlNode *a_node) {
-
-	xmlNode *cur_node = NULL;
-
-	for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
-		if (cur_node->type == XML_ELEMENT_NODE) {
-			printf("node type: Element, name: %s\n", cur_node->name);
-		}
-
-		xmlAttr *attribute = cur_node->properties;
-		while (attribute) {
-			xmlChar *value = xmlNodeListGetString(cur_node->doc,
-					attribute->children, 1);
-			//do something with value
-			printf("attribute----- %s: %s\n", attribute->name, value);
-			xmlFree(value);
-			attribute = attribute->next;
-		}
-
-		print_element_names(cur_node->children);
-	}
-
-}*/
-
-struct AttackList* getAttackList() {
+struct AttackList* getAttackList(char * filename) {
 
 	xmlDoc *doc = NULL;
 	xmlNode *root_element = NULL;
 
 	LIBXML_TEST_VERSION
 
-	doc = xmlReadFile(ATTACKSCENARIOXML, NULL, 0);
+
+	doc = xmlReadFile(filename, NULL, 0);
 
 	if (doc == NULL) {
-		printf("error: could not parse file %s\n", ATTACKSCENARIOXML);
+		printf("error: could not parse file %s\n", filename);
 	}
 
 	root_element = xmlDocGetRootElement(doc);
