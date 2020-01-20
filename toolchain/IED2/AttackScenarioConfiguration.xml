@@ -1,17 +1,19 @@
 <?xml version="1.0"?>
 <attacks>
+	
 	<attack name="modifyAttack" enable="true">
 		<condition>
-			<conditionType value="2"/>
+			<conditionType value="1"/>
 			<stNum value="5"/>
 			<sqNum value="0"/>
 			<gcbName value="Alarm"/>
+			<time value="5"/>
 		</condition>
 		<payload>
-			<interface value="lo"/>
+			<interface value="ens33.2"/>
 			<modification arrayIndex="1" modifiedValue="110"/>
-			<modification arrayIndex="2" modifiedValue="282"/>
-			<modification arrayIndex="3" modifiedValue="0"/>
+			<!--modification arrayIndex="2" modifiedValue="282"/>
+			<modification arrayIndex="3" modifiedValue="0"/-->
 		</payload>
 	</attack>
 </attacks>
