@@ -1,0 +1,210 @@
+<?xml version="1.0"?>
+<attacks>
+	<attack name="insertAttack" enable="false">
+		<condition>
+			<conditionType value="1"/>
+			<stNum value="5"/>
+			<sqNum value="0"/>
+			<gcbName value="Alarm"/>
+			<time value="10"/>
+			<payload_conditions>
+				<!--payload_condition index="1" type="string" value="string"/-->
+				<!--payload_condition index="1" type="numeric" value="5" operator="equal"/-->
+				<paylaod_condition index="4" type="boolean" value="true"/>
+			</payload_conditions>
+		</condition>
+		<payload>
+			<interface value="ens33.1"/>
+			<stNum value="101"/>
+			<sqNum value="102"/>
+			<gcbName value="103malicious"/>
+			<appId value="104"/>
+			<dstAddress value="fbcd10341210"/>
+			<vlanId value="106"/>
+			<vlanPriority value="107"/>
+			<gocbRef value="108TIED1CTRL/LLN$Control_TC"/>
+			<timeAllowedtoLive value="109"/>
+			<dataSet value="110TIED1CTRL/LLN$Control_TC"/>
+			<goID value="108TIED1CTRL/LLN$Control_TC"/><!--must same as gocbref-->
+			<values>
+				<value type="integer" value="123123"/>
+				<value type="string" value="abc"/>
+				<value type="boolean" value="fales"/>
+				<value type="float" value="1.2"/>
+			</values>
+		</payload>
+	</attack>
+	<attack name="insertAttack" enable="false">
+		<condition>
+			<conditionType value="1"/>
+			<gcbName value="Alarm"/>
+			<time value="5"/>
+		</condition>
+		<payload>
+			<interface value="ens33.1"/>
+			<stNum value="101"/>
+			<sqNum value="102"/>
+			<gcbName value="103malicious"/>
+			<appId value="104"/>
+			<dstAddress value="fbcd10341210"/>
+			<vlanId value="106"/>
+			<vlanPriority value="107"/>
+			<gocbRef value="108TIED1CTRL/LLN$Control_TC"/>
+			<timeAllowedtoLive value="109"/>
+			<dataSet value="110TIED1CTRL/LLN$Control_TC"/>
+			<goID value="108TIED1CTRL/LLN$Control_TC"/>
+			<values>
+				<value type="integer" value="123"/>
+				<value type="string" value="open"/>
+				<value type="boolean" value="fales"/>
+				<value type="float" value="1.2"/>
+			</values>
+		</payload>
+	</attack>
+	<attack name="insertAttack" enable="false">
+		<condition>
+			<conditionType value="1"/>
+			<stNum value="7"/>
+			<sqNum value="0"/>
+			<gcbName value="Alarm"/>
+			<time value="10"/>
+		</condition>
+		<payload>
+			<interface value="lo"/>
+			<stNum value="101"/>
+			<sqNum value="102"/>
+			<gcbName value="103malicious"/>
+			<appId value="104"/>
+			<dstAddress value="abcd10341210"/>
+			<vlanId value="106"/>
+			<vlanPriority value="107"/>
+			<gocbRef value="108TIED1CTRL/LLN$Control_TC"/>
+			<timeAllowedtoLive value="109"/>
+			<dataSet value="110TIED1CTRL/LLN$Control_TC"/>
+			<goID value="111TIED1CTRL/LLN$Control_TC"/>
+			<values>
+				<value type="integer" value="123123"/>
+				<value type="string" value="abc"/>
+				<value type="boolean" value="true"/>
+				<value type="float" value="1.3"/>
+			</values>
+		</payload>
+	</attack>
+	<attack name="modifyAttack" enable="false">
+		<condition>
+			<conditionType value="1"/>
+			<stNum value="5"/>
+			<sqNum value="0"/>
+			<gcbName value="Alarm"/>
+			<time value="5"/>
+		</condition>
+		<payload>
+			<interface value="lo"/>
+			<modification arrayIndex="1" modifiedValue="11"/>
+			<modification arrayIndex="2" modifiedValue="22"/>
+			<modification arrayIndex="3" modifiedValue="33"/>
+		</payload>
+	</attack>
+	<attack name="modifyAttack" enable="false">
+		<condition>
+			<conditionType value="2"/>
+			<stNum value="5"/>
+			<sqNum value="0"/>
+			<gcbName value="Alarm"/>
+		</condition>
+		<payload>
+			<interface value="lo"/>
+			<modification arrayIndex="1" modifiedValue="110"/>
+			<modification arrayIndex="2" modifiedValue="282"/>
+			<modification arrayIndex="3" modifiedValue="0"/>
+		</payload>
+	</attack>
+	<attack name="modifyAttack" enable="false">
+		<condition>
+			<conditionType value="3"/>
+			<stNum value="7"/>
+			<sqNum value="0"/>
+			<gcbName value="Alarm"/>
+			<time value="10"/>
+			<payload_conditions>
+				<!--payload_condition index="1" type="string" value="string"/-->
+				<!--payload_condition index="1" type="numeric" value="5" operator="equal"/-->
+				<paylaod_condition index="5" type="boolean" value="true"/>
+			</payload_conditions>
+		</condition>
+		<payload>
+			<interface value="lo"/>
+			<modification arrayIndex="1" modifiedValue="44"/>
+			<modification arrayIndex="2" modifiedValue="55"/>
+		</payload>
+	</attack>
+	<attack name="dosAttack" enable="false">
+		<condition>
+			<conditionType value="3"/>
+			<stNum value="7"/>
+			<sqNum value="0"/>
+			<gcbName value="Alarm"/>
+			<time value="10"/>
+			<payload_conditions>
+				<!--payload_condition index="1" type="string" value="string"/-->
+				<!--payload_condition index="1" type="numeric" value="5" operator="equal"/-->
+				<paylaod_condition index="5" type="boolean" value="true"/>
+			</payload_conditions>
+		</condition>
+		<payload>
+			<interface value="lo"/>
+			<stNum value="101"/>
+			<sqNum value="102"/>
+			<gcbName value="103malicious"/>
+			<appId value="104"/>
+			<dstAddress value="abcd10341210"/>
+			<vlanId value="106"/>
+			<vlanPriority value="107"/>
+			<gocbRef value="108TIED1CTRL/LLN$Control_TC"/>
+			<timeAllowedtoLive value="109"/>
+			<dataSet value="110TIED1CTRL/LLN$Control_TC"/>
+			<goID value="111TIED1CTRL/LLN$Control_TC"/>
+			<values>
+				<value type="integer" value="123123"/>
+				<value type="string" value="abc"/>
+				<value type="boolean" value="true"/>
+				<value type="float" value="1.3"/>
+			</values>
+		</payload>
+		<stop_condition>
+			<packetsNum value="100"/>
+		</stop_condition>
+	</attack>
+	<attack name="dosAttack" enable="false">
+		<condition>
+			<conditionType value="3"/>
+			<gcbName value="Alarm"/>
+			<payload_conditions>
+				<paylaod_condition index="4" type="boolean" value="true"/>
+			</payload_conditions>
+		</condition>
+		<payload>
+			<interface value="ens33.1"/>
+			<stNum value="101"/>
+			<sqNum value="102"/>
+			<gcbName value="103malicious"/>
+			<appId value="104"/>
+			<dstAddress value="abcd10341210"/>
+			<vlanId value="106"/>
+			<vlanPriority value="107"/>
+			<gocbRef value="108TIED1CTRL/LLN$Control_TC"/>
+			<timeAllowedtoLive value="109"/>
+			<dataSet value="110TIED1CTRL/LLN$Control_TC"/>
+			<goID value="111TIED1CTRL/LLN$Control_TC"/>
+			<values>
+				<value type="integer" value="123123"/>
+				<value type="string" value="abc"/>
+				<value type="boolean" value="true"/>
+				<value type="float" value="1.3"/>
+			</values>
+		</payload>
+		<stop_condition>
+			<packetsNum value="100"/>
+		</stop_condition>
+	</attack>
+</attacks>

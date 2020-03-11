@@ -1,8 +1,23 @@
 <?xml version="1.0"?>
 <Simulations>
-	<IED name="IED1" folder="IED1" interface="ens33.1" port="102" duration="10"/>
-	<IED name="IED2" folder="IED2" interface="ens33.2" port="103" duration="10"/>
-	<IED name="IED3" folder="IED3" interface="ens33.3" port="104" duration="10"/>
-	<IED name="IED4" folder="IED4" interface="ens33.4" port="105" duration="10"/>
-	<IED name="IED5" folder="IED5" interface="ens33.5" port="106" duration="10"/>
+	<IED name="IED1" folder="IED1" interface="ens33.1" port="102" duration="5"/>
+	<IED name="IED2" folder="IED2" interface="ens33.2" port="103" duration="5"/>
+	<IED name="IED3" folder="IED3" interface="ens33.3" port="104" duration="5"/>
+	<IED name="IED4" folder="IED4" interface="ens33.4" port="105" duration="5"/>
+	<IED name="IED5" folder="IED5" interface="ens33.5" port="106" duration="5"/>
+        <IED name="IED6" folder="IED6" interface="ens33.6" port="107" duration="5"/>
+        <IED name="IED7" folder="IED7" interface="ens33.7" port="108" duration="5"/>
+        <IED name="IED8" folder="IED8" interface="ens33.8" port="109" duration="5"/>
+        <IED name="IED9" folder="IED9" interface="ens33.9" port="110" duration="5"/>
+        <IED name="IED10" folder="IED10" interface="ens33.10" port="111" duration="5"/>
+        <IED name="IED11" folder="IED11" interface="ens33.11" port="112" duration="5"/>
+        <IED name="IED12" folder="IED12" interface="ens33.12" port="113" duration="5"/>
+        <IED name="IED13" folder="IED13" interface="ens33.13" port="114" duration="5"/>
+        <IED name="IED14" folder="IED14" interface="ens33.14" port="115" duration="5"/>
+        <IED name="IED15" folder="IED15" interface="ens33.15" port="116" duration="5"/>
+        <IED name="IED16" folder="IED16" interface="ens33.16" port="117" duration="5"/>
+        <IED name="IED17" folder="IED17" interface="ens33.17" port="118" duration="5"/>
+        <IED name="IED18" folder="IED18" interface="ens33.18" port="119" duration="5"/>
+        <IED name="IED19" folder="IED19" interface="ens33.19" port="120" duration="5"/>
+        <IED name="IED20" folder="IED20" interface="ens33.20" port="121" duration="5"/>
 </Simulations>
