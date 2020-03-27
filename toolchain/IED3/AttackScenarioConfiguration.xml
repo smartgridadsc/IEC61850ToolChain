@@ -3,7 +3,7 @@
 	<attack name="dosAttack" enable="true">
 		<condition>
 			<conditionType value="3"/>
-			<gcbName value="Alarm"/>
+			<gcbName value="Status"/>
 			<payload_conditions>
 				<paylaod_condition index="4" type="boolean" value="true"/>
 			</payload_conditions>
