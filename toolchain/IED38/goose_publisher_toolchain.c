@@ -31,6 +31,7 @@ int executedDosAttackCount=0;
 double updatePayloadInterval;
 struct AttackList* attackList;
 clock_t beginTime;
+struct timeval beginTime2;
 bool firstPublishGoose=true;
 char **results;
 // has to be executed as root!
@@ -41,11 +42,14 @@ int main(int argc, char **argv) {
 	int port;
 	char *folder;
     double programDuration;
+    //printf("max time is %d\n", iedModel.gseCBs->maxTime);
+    //printf("min time is %d\n", iedModel.gseCBs->minTime);
     updatePayloadInterval=(iedModel.gseCBs->maxTime+iedModel.gseCBs->minTime)/(2*1000);
+    printf("updatePayloadInterval is %f\n", updatePayloadInterval);
 
 	if (argc > 2) {
 		if (DEBUG_MODE) {
-			 interface = "lo";
+			 interface = "ens33.1";
 			 nextUpdatePayloadTime = getTime() + 1;
 			 port = 102;
 			 folder = "dummy";
@@ -97,10 +101,10 @@ int main(int argc, char **argv) {
 	}
 
 
-	/*char cwd[100];
+	char cwd[100];
 	if (getcwd(cwd, sizeof(cwd)) != NULL) {
 		printf("Current working dir: %s\n", cwd);
-	}*/
+	}
 	if (valueFileStream == NULL) {
 		printf("Cannot load csv file.\n");
 		exit(-1);
@@ -124,6 +128,7 @@ int main(int argc, char **argv) {
 	char * lastBuffer;
 	lastBuffer=(char*) malloc(bufsize * sizeof(char));
 	beginTime= clock();
+	gettimeofday(&beginTime2, NULL);
 	printf("start time is %f\n",getRuningTime());
 	while (getRuningTime()<programDuration) {
 		//printf("iterate time is %f\n",getRuningTime());
@@ -148,34 +153,24 @@ int main(int argc, char **argv) {
 				launchModifyAttack(iedServer,results);
 			}
 
+
+			assignPayloadValue();
 			/*while (1) {
 					if (getTime() > nextUpdatePayloadTime) {
 						nextUpdatePayloadTime = nextUpdatePayloadTime + updatePayloadInterval;
 						break;
 					}
 			}*/
-			assignPayloadValue();
-			while (1) {
-					if (getTime() > nextUpdatePayloadTime) {
-						nextUpdatePayloadTime = nextUpdatePayloadTime + updatePayloadInterval;
-						break;
-					}
-			}
+			sleep((int)updatePayloadInterval);
+			nextUpdatePayloadTime = nextUpdatePayloadTime + updatePayloadInterval;
 
 			InsertAndDoSAttacks();
-			/*if (enableInsertAttack) {
-				//printf("calling launchInsertAttack\n");
-				launchInsertAttack(iedServer,results);
-			}
-			//launch DoS attack
-			if(enableDosAttack){
-				launchDoSAttack(iedServer,results);
-			}*/
 
 			free(tmp);
 			free(results);
+		}else{
+			sleep((int)updatePayloadInterval);
 		}
-
 	}
 	printf("running time is %f\n",getRuningTime());
 	exit(0);
@@ -527,9 +522,13 @@ void ModifyArrayTriggerByTime(struct ModifyAttack* mAttack){
 }
 
 double getRuningTime(){
-	clock_t currentTime = clock();
-	double spent = (double)(currentTime - beginTime) / CLOCKS_PER_SEC;
-	return spent;
+	/*clock_t currentTime = clock();
+	double spent =(double)(currentTime - beginTime)/ (double)CLOCKS_PER_SEC;
+	return spent;*/
+	struct timeval currentTime;
+	gettimeofday(&currentTime, NULL);
+	double time_taken = currentTime.tv_sec + currentTime.tv_usec / 1e6 -
+	                        beginTime2.tv_sec - beginTime2.tv_usec / 1e6; // in seconds
 
 }
 int getHexFromString(int index,char * string){
@@ -588,25 +587,25 @@ char ** getResults(){
 void assignPayloadValue(){
 	IedServer_lockDataModel(iedServer); //Lock the MMS server data model.Client requests will be postponed until the lock is removed.
 	//Insert generated code here
-IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_CTRL_XCBR_Pos_stVal,atoi(results[0]));
-IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_CTRL_XSWI_Pos_stVal,atoi(results[1]));
-IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_CTRL_PTRC_EEHealth_stVal,atoi(results[2]));
-IedServer_updateBooleanAttributeValue(iedServer,IEDMODEL_CTRL_XCBR_Loc_stVal,stobool(results[3]));
-IedServer_updateBooleanAttributeValue(iedServer,IEDMODEL_PROT_PIOC_Op_general,stobool(results[4]));
-IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_PROT_XCBR_EEHealth_stVal,atoi(results[5]));
-IedServer_updateBooleanAttributeValue(iedServer,IEDMODEL_PROT_LPHD_PwrSupAlm_stVal,stobool(results[6]));
-IedServer_updateBooleanAttributeValue(iedServer,IEDMODEL_PROT_PSCH_ProTx_stVal,stobool(results[7]));
-IedServer_updateBooleanAttributeValue(iedServer,IEDMODEL_PROT_PSCH_ProRx_stVal,stobool(results[8]));
-IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f,atof(results[9]));
-IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f,atof(results[10]));
-IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f,atof(results[11]));
-IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f,atof(results[12]));
-IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f,atof(results[13]));
-IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f,atof(results[14]));
-IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_TotW_instMag_f,atof(results[15]));
-IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_TotVAr_instMag_f,atof(results[16]));
-IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_Hz_instMag_f,atof(results[17]));
-IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_TotPF_instMag_f,atof(results[18]));
+	IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_CTRL_XCBR_Pos_stVal,atoi(results[0]));
+	IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_CTRL_XSWI_Pos_stVal,atoi(results[1]));
+	IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_CTRL_PTRC_EEHealth_stVal,atoi(results[2]));
+	IedServer_updateBooleanAttributeValue(iedServer,IEDMODEL_CTRL_XCBR_Loc_stVal,stobool(results[3]));
+	IedServer_updateBooleanAttributeValue(iedServer,IEDMODEL_PROT_PIOC_Op_general,stobool(results[4]));
+	IedServer_updateInt32AttributeValue(iedServer,IEDMODEL_PROT_XCBR_EEHealth_stVal,atoi(results[5]));
+	IedServer_updateBooleanAttributeValue(iedServer,IEDMODEL_PROT_LPHD_PwrSupAlm_stVal,stobool(results[6]));
+	IedServer_updateBooleanAttributeValue(iedServer,IEDMODEL_PROT_PSCH_ProTx_stVal,stobool(results[7]));
+	IedServer_updateBooleanAttributeValue(iedServer,IEDMODEL_PROT_PSCH_ProRx_stVal,stobool(results[8]));
+	IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_A_phsA_instCVal_mag_f,atof(results[9]));
+	IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_A_phsB_instCVal_mag_f,atof(results[10]));
+	IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_A_phsC_instCVal_mag_f,atof(results[11]));
+	IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_PhV_phsA_instCVal_mag_f,atof(results[12]));
+	IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_PhV_phsB_instCVal_mag_f,atof(results[13]));
+	IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_PhV_phsC_instCVal_mag_f,atof(results[14]));
+	IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_TotW_instMag_f,atof(results[15]));
+	IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_TotVAr_instMag_f,atof(results[16]));
+	IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_Hz_instMag_f,atof(results[17]));
+	IedServer_updateFloatAttributeValue(iedServer,IEDMODEL_MEAS_MMXU_TotPF_instMag_f,atof(results[18]));
 	//End of insert code
 	IedServer_unlockDataModel(iedServer);
 }

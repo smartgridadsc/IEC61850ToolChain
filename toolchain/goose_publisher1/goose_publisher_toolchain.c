@@ -31,6 +31,7 @@ int executedDosAttackCount=0;
 double updatePayloadInterval;
 struct AttackList* attackList;
 clock_t beginTime;
+struct timeval beginTime2;
 bool firstPublishGoose=true;
 char **results;
 // has to be executed as root!
@@ -41,11 +42,14 @@ int main(int argc, char **argv) {
 	int port;
 	char *folder;
     double programDuration;
+    //printf("max time is %d\n", iedModel.gseCBs->maxTime);
+    //printf("min time is %d\n", iedModel.gseCBs->minTime);
     updatePayloadInterval=(iedModel.gseCBs->maxTime+iedModel.gseCBs->minTime)/(2*1000);
+    printf("updatePayloadInterval is %f\n", updatePayloadInterval);
 
 	if (argc > 2) {
 		if (DEBUG_MODE) {
-			 interface = "ens33";
+			 interface = "ens33.1";
 			 nextUpdatePayloadTime = getTime() + 1;
 			 port = 102;
 			 folder = "dummy";
@@ -124,6 +128,7 @@ int main(int argc, char **argv) {
 	char * lastBuffer;
 	lastBuffer=(char*) malloc(bufsize * sizeof(char));
 	beginTime= clock();
+	gettimeofday(&beginTime2, NULL);
 	printf("start time is %f\n",getRuningTime());
 	while (getRuningTime()<programDuration) {
 		//printf("iterate time is %f\n",getRuningTime());
@@ -148,34 +153,24 @@ int main(int argc, char **argv) {
 				launchModifyAttack(iedServer,results);
 			}
 
+
+			assignPayloadValue();
 			/*while (1) {
 					if (getTime() > nextUpdatePayloadTime) {
 						nextUpdatePayloadTime = nextUpdatePayloadTime + updatePayloadInterval;
 						break;
 					}
 			}*/
-			assignPayloadValue();
-			while (1) {
-					if (getTime() > nextUpdatePayloadTime) {
-						nextUpdatePayloadTime = nextUpdatePayloadTime + updatePayloadInterval;
-						break;
-					}
-			}
+			sleep((int)updatePayloadInterval);
+			nextUpdatePayloadTime = nextUpdatePayloadTime + updatePayloadInterval;
 
 			InsertAndDoSAttacks();
-			/*if (enableInsertAttack) {
-				//printf("calling launchInsertAttack\n");
-				launchInsertAttack(iedServer,results);
-			}
-			//launch DoS attack
-			if(enableDosAttack){
-				launchDoSAttack(iedServer,results);
-			}*/
 
 			free(tmp);
 			free(results);
+		}else{
+			sleep((int)updatePayloadInterval);
 		}
-
 	}
 	printf("running time is %f\n",getRuningTime());
 	exit(0);
@@ -527,9 +522,13 @@ void ModifyArrayTriggerByTime(struct ModifyAttack* mAttack){
 }
 
 double getRuningTime(){
-	clock_t currentTime = clock();
-	double spent = (double)(currentTime - beginTime) / CLOCKS_PER_SEC;
-	return spent;
+	/*clock_t currentTime = clock();
+	double spent =(double)(currentTime - beginTime)/ (double)CLOCKS_PER_SEC;
+	return spent;*/
+	struct timeval currentTime;
+	gettimeofday(&currentTime, NULL);
+	double time_taken = currentTime.tv_sec + currentTime.tv_usec / 1e6 -
+	                        beginTime2.tv_sec - beginTime2.tv_usec / 1e6; // in seconds
 
 }
 int getHexFromString(int index,char * string){

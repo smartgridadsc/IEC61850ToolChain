@@ -1,7 +1,7 @@
 /*
  * static_model.c
  *
- * automatically generated from C:\Users\yuan.li\Documents\IED3.iid
+ * automatically generated from C:\Users\yuan.li\Documents\IED4.iid
  */
 #include "static_model.h"
 
@@ -7266,9 +7266,9 @@ DataAttribute iedModel_MEAS_MMXU_NamPlt_configRev = {
 extern GSEControlBlock iedModel_CTRL_LLN0_gse0;
 extern GSEControlBlock iedModel_PROT_LLN0_gse0;
 extern GSEControlBlock iedModel_MEAS_LLN0_gse0;
-GSEControlBlock iedModel_CTRL_LLN0_gse0 = {&iedModel_CTRL_LLN0, "Status", "IED3/CTRL/LLN0/Status", "Status", 10002, false, NULL, 1000, 1000, &iedModel_PROT_LLN0_gse0};
-GSEControlBlock iedModel_PROT_LLN0_gse0 = {&iedModel_PROT_LLN0, "Alarm", "IED3/PROT/LLN0/Alarm", "Alarm", 10002, false, NULL, 1000, 1000, &iedModel_MEAS_LLN0_gse0};
-GSEControlBlock iedModel_MEAS_LLN0_gse0 = {&iedModel_MEAS_LLN0, "Meas", "IED3/MEAS/LLN0/Meas", "Meas", 10002, false, NULL, 1000, 1000, NULL};
+GSEControlBlock iedModel_CTRL_LLN0_gse0 = {&iedModel_CTRL_LLN0, "Status", "IED4/CTRL/LLN0/Status", "Status", 10002, false, NULL, 1000, 1000, &iedModel_PROT_LLN0_gse0};
+GSEControlBlock iedModel_PROT_LLN0_gse0 = {&iedModel_PROT_LLN0, "Alarm", "IED4/PROT/LLN0/Alarm", "Alarm", 10002, false, NULL, 1000, 1000, &iedModel_MEAS_LLN0_gse0};
+GSEControlBlock iedModel_MEAS_LLN0_gse0 = {&iedModel_MEAS_LLN0, "Meas", "IED4/MEAS/LLN0/Meas", "Meas", 10002, false, NULL, 1000, 1000, NULL};
 
 extern SettingGroupControlBlock iedModel_PROT_LLN0_sgcb;
 
@@ -7278,7 +7278,7 @@ SettingGroupControlBlock iedModel_PROT_LLN0_sgcb = {&iedModel_PROT_LLN0, 1, 4, 0
 
 
 IedModel iedModel = {
-    "IED3",
+    "IED4",
     &iedModel_CTRL,
     &iedModelds_CTRL_LLN0_Status,
     NULL,

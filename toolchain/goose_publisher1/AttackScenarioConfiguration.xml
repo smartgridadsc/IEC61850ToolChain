@@ -2,13 +2,13 @@
 <attacks>
 	<attack name="modifyAttack" enable="true">
 		<condition>
-			<conditionType value="2"/>
+			<conditionType value="1"/>
 			<stNum value="5"/>
 			<sqNum value="0"/>
 			<gcbName value="Alarm"/>
 		</condition>
 		<payload>
-			<interface value="lo"/>
+			<interface value="ens33.1"/>
 			<modification arrayIndex="1" modifiedValue="110"/>
 			<modification arrayIndex="2" modifiedValue="282"/>
 			<modification arrayIndex="3" modifiedValue="0"/>
