@@ -61,4 +61,4 @@ Open wireshark or other traffic capture tools to collect your IEC6180 trace!
 
 License
 ---
-to be continued
+GNU General Public License v3.0
